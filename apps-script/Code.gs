@@ -47,11 +47,17 @@ function countBooked_(sh) {
   var rows = sh.getRange(2, 1, last - 1, HEADERS.length).getValues();
   rows.forEach(function (r) {
     if (String(r[22]) === 'CANCELADA') return;
-    var sessionId = r[2] + '_' + slug_(r[4]) + '_' + r[6];
+    var sessionId = txt_(r[2]) + '_' + slug_(r[4]) + '_' + r[6];
     var key = sessionId + '|' + findBikeId_(r[7]) + '|' + r[8];
     booked[key] = (booked[key] || 0) + 1;
   });
   return booked;
+}
+
+// Sheets puede devolver "2026-12-15" como objeto Date: lo normalizamos siempre a texto yyyy-MM-dd
+function txt_(v) {
+  if (Object.prototype.toString.call(v) === '[object Date]') return Utilities.formatDate(v, 'Europe/Madrid', 'yyyy-MM-dd');
+  return String(v);
 }
 
 function slug_(s) {
@@ -122,7 +128,7 @@ function doPost(e) {
     var last = sh.getLastRow();
     if (last > 1) {
       sh.getRange(2, 1, last - 1, HEADERS.length).getValues().forEach(function (r) {
-        if (String(r[22]) !== 'CANCELADA') existing[String(r[14]).toLowerCase() + '|' + r[2] + '_' + slug_(r[4]) + '_' + r[6]] = true;
+        if (String(r[22]) !== 'CANCELADA') existing[String(r[14]).toLowerCase() + '|' + txt_(r[2]) + '_' + slug_(r[4]) + '_' + r[6]] = true;
       });
     }
 
@@ -150,6 +156,7 @@ function doPost(e) {
     bookings.forEach(function (b) {
       var s = SESSIONS[b.sessionId];
       var bike = BIKES[b.bikeId];
+      sh.getRange(sh.getLastRow() + 1, 1, 1, HEADERS.length).setNumberFormat('@');
       sh.appendRow([now, ref, s.date, s.start + '-' + s.end, s.city, s.store, s.type, bike.label, b.size,
         safe_(clean_(p.nombre)), safe_(clean_(p.apellidos)), safe_(clean_(p.documento, 30)), clean_(p.nacimiento, 10),
         safe_(clean_(p.telefono, 30)), email, safe_(clean_(p.emergenciaNombre)), safe_(clean_(p.emergenciaTelefono, 30)),

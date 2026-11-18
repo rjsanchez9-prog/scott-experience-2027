@@ -69,3 +69,12 @@ Notas WhatsApp: guarda en caché la vista previa de cada enlace; para forzar la 
 
 ## Guía de tallas
 Los rangos de altura salen de las guías oficiales (`guia tallas spark rc.tiff` y `guia tallas addict gravel.tiff`), medidos sobre los gráficos; están en `tools/build_data.py` (`size_guide`). Si SCOTT actualiza la guía, cambia ahí los rangos y las imágenes de `assets/img/guides/` y ejecuta `python3 -I tools/build_data.py`.
+
+## Cambios de la v7/v8 (confirmación directa, peso/sillín, coordinadores)
+
+- **Confirmación directa:** `REQUIRE_EMAIL_CONFIRMATION = false` (en `Code.gs`). La reserva queda `CONFIRMADA` al enviarla y el participante recibe **un solo email** con los datos y un enlace para cancelar (`reserva.html`). El modo anterior (validar por email en 30 min) sigue en el código: pon `true` para reactivarlo.
+- **Formulario:** «Peso (kg)» obligatorio y «Altura de sillín (cm)» opcional; se guardan en las columnas «Peso (kg)» y «Altura sillin (cm)» (al final de la hoja).
+- **Descargo:** ya no se firma con el nombre; se marcan las casillas «he leído y comprendido» y «acepto». En la hoja, la columna «Firma (nombre)» queda como «Casillas de lectura y aceptacion (sin firma)».
+- **Avisos al equipo:** cada reserva nueva o cancelada se envía al organizador (`ORGANIZER_EMAIL`) y al coordinador de la tienda correspondiente (`STORE_COORDINATORS`). El coordinador recibe nombre, teléfono, email, peso, altura de sillín, bici y talla; **no** el DNI, la fecha de nacimiento ni el contacto de emergencia.
+- **Datos que solo viven en la copia de Google:** `ORGANIZER_EMAIL`, `SPREADSHEET_ID` y `STORE_COORDINATORS` se rellenan únicamente en el editor de Apps Script (los correos de terceros no se publican en este repositorio). Al pegar `Code.gs` de nuevo, vuelve a rellenarlos.
+- **Cuota de emails:** cada reserva envía hasta 3 correos (participante, organizador y coordinador). Con una cuenta Gmail gratuita (~100 destinatarios al día) caben unas 30–35 reservas diarias; el participante tiene prioridad y las copias se omiten si queda poca cuota.

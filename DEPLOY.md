@@ -93,3 +93,9 @@ Hoy existen las cuatro («Reservas <tienda> (solo lectura)»): las cuatro están
 
 ## Reservas de prueba (v10)
 Los avisos a organizador y coordinadores marcan una reserva como **PRUEBA** cuando el nombre o los apellidos contienen la palabra «prueba» o «test», o cuando el email es el del organizador: el asunto empieza por `[PRUEBA - NO ES UNA RESERVA REAL]` y el cuerpo por «PRUEBA - NO ES UNA RESERVA REAL. IGNORAR…». Aplica también a su cancelación. Criterio de trabajo: no hacer pruebas salvo necesidad; si se hacen, con nombre «PRUEBA», y borrar la fila de la hoja después.
+
+## Málaga por turnos y bloqueo del domingo (v11)
+- **Bike Philosophy (Málaga)** pasa a turnos, con una salida de MTB (Spark RC) y otra de gravel (Addict Gravel) **a la misma hora**: sábado 12 a las 10:00, 12:00 y 15:00 (hasta 1 h 30 min) y domingo 13 a las 10:00, 11:30 y 13:00 (1 h). Los horarios están en `tools/build_data.py` (`turns`); después `python3 -I tools/build_data.py`.
+- **Un test por familia y por hora:** una reserva admite hasta 2 tests (uno de MTB y uno de gravel). En la web, al elegir uno, el de la otra familia que coincide en hora queda bloqueado (con aviso). El servidor lo comprueba también (dentro de la reserva y contra reservas previas del mismo documento).
+- **Domingo 13 bloqueado:** `BLOCKED_DATES = { '2026-12-13': true }` en `Code.gs`. La web lo muestra como «Próximamente» (botón y tarjeta en gris) y el servidor rechaza cualquier reserva de ese día (`BLOCKED`).
+- **Para abrir el domingo:** en el editor de Apps Script poner `var BLOCKED_DATES = {};`, guardar y publicar una **versión nueva** de la implementación (Implementar > Gestionar implementaciones > Editar > Versión nueva). No hace falta tocar la web ni GitHub; conviene dejar también `BLOCKED_DATES = {}` en el repositorio.

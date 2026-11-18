@@ -106,7 +106,8 @@
     var d = dayByDate(state.dayDate), p = parseDate(d.date);
     el.innerHTML = '<span class="logo-tile lg" style="background:' + d.logoBg + '"><img src="' + esc(d.logo) + '" alt="Logo ' + esc(d.store) + '"></span>' +
       '<div class="sb-text"><div class="sb-eyebrow">' + (step === "done" ? "Tu test en" : "Reservas para el test en") + '</div><div class="sb-name">' + esc(d.store) + "</div>" +
-      '<div class="sb-meta">' + esc(d.city) + " · " + esc(d.weekday) + " " + p.d + " de diciembre</div></div>" +
+      '<div class="sb-meta">' + esc(d.city) + " · " + esc(d.weekday) + " " + p.d + " de diciembre</div>" +
+      '<a class="sb-map" href="' + esc(d.mapUrl) + '" target="_blank" rel="noopener noreferrer"><svg class="pin" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg> Cómo llegar · ver ubicación en Google Maps</a></div>' +
       (step === 2 ? '<button type="button" class="btn btn-ghost btn-sm sb-change" id="sb-change">Cambiar tienda</button>' : "");
     el.hidden = false;
     var c = $("#sb-change"); if (c) c.addEventListener("click", function () { go(1); });
@@ -251,7 +252,7 @@
     var rows = bookingsList().map(function (bk) {
       var p = parseDate(bk.session.date);
       return '<dl class="sum-row sum-test"><dt>' + TYPE_SHORT[bk.session.type] + "</dt><dd><strong>" + esc(bk.session.weekday) + " " + p.d + " " + MONTHS[p.m - 1] + " · " + esc(bk.session.start) + "–" + esc(bk.session.end) + "</strong><br>" +
-        esc(bk.session.store) + " (" + esc(bk.session.city) + ")<br>Presentarse a las <strong>" + esc(bk.session.arrive) + "</strong> (30 min antes)<br>" + esc(bikeName(bk.bike)) + " · " + esc(bk.bike.color) + " · <strong>talla " + esc(bk.size) + "</strong></dd></dl>";
+        esc(bk.session.store) + " (" + esc(bk.session.city) + ') · <a class="map-link" href="' + esc(bk.session.mapUrl) + '" target="_blank" rel="noopener noreferrer">Ver ubicación</a><br>Presentarse a las <strong>' + esc(bk.session.arrive) + "</strong> (30 min antes)<br>" + esc(bikeName(bk.bike)) + " · " + esc(bk.bike.color) + " · <strong>talla " + esc(bk.size) + "</strong></dd></dl>";
     }).join("");
     if (withPerson && person) {
       rows += '<dl class="sum-row"><dt>Participante</dt><dd>' + esc(person.nombre + " " + person.apellidos) + "<br>" + esc(person.documento) + "</dd></dl>" +
@@ -339,7 +340,7 @@
         "DTSTART:" + stamp(b.session.date, b.session.start), "DTEND:" + stamp(b.session.date, b.session.end),
         "SUMMARY:Test SCOTT " + TYPE_SHORT[b.session.type] + " · " + bikeName(b.bike) + " (" + b.size + ") · llegar " + b.session.arrive,
         "LOCATION:" + b.session.store + "\\, " + b.session.city,
-        "DESCRIPTION:Referencia " + ref + ". Presentate a las " + b.session.arrive + " (30 minutos antes del inicio). Casco obligatorio. Lleva tu documento de identidad.", "END:VEVENT"].join("\r\n");
+        "DESCRIPTION:Referencia " + ref + ". Presentate a las " + b.session.arrive + " (30 minutos antes del inicio). Ubicacion: " + b.session.mapUrl + " . Casco obligatorio. Lleva tu documento de identidad.","URL:" + b.session.mapUrl, "END:VEVENT"].join("\r\n");
     }).join("\r\n");
     var ics = "BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//SCOTT Experience 2027//ES\r\nCALSCALE:GREGORIAN\r\n" + ev + "\r\nEND:VCALENDAR\r\n";
     var a = document.createElement("a");

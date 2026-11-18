@@ -272,3 +272,11 @@ button { font: inherit; }
 /* Llegada 30 min antes */
 .t-arrive { font-size: 13px; color: var(--ink-2); margin-top: 3px; }
 .t-arrive strong { font-family: var(--font-head); }
+
+/* Ubicación de la tienda */
+.sb-map { display: inline-flex; align-items: center; gap: 6px; margin-top: 10px; font: 700 13px var(--font-head); color: var(--ink); text-decoration: underline; text-underline-offset: 4px; }
+.sb-map:hover { color: var(--accent); }
+.sb-map .pin { flex: none; }
+.map-link { font-weight: 700; text-decoration: underline; text-underline-offset: 3px; color: var(--ink); }
+.loc-list { list-style: none; padding: 0; margin: 8px 0 0; display: grid; gap: 4px; }
+.loc-list a { color: var(--ink); font-weight: 700; text-underline-offset: 3px; }

@@ -100,6 +100,13 @@ def main():
     ]
     # Cada test dura entre 1 h y 1 h 30 min; hay que presentarse ARRIVE_MIN minutos antes del inicio.
     ARRIVE_MIN = 30
+    # Enlaces de Google Maps de cada tienda (facilitados por el cliente)
+    MAPS = {
+        "Special Bikes":        "https://maps.app.goo.gl/Sm2qDsy3iYJcYGqA6",
+        "Bike Philosophy":      "https://maps.app.goo.gl/jEWQp1VuHFSCoQHi9",
+        "Córdoba Bike":         "https://maps.app.goo.gl/A6LpH7HkqhRABzZA7",
+        "Kanina Bikes Andújar": "https://maps.app.goo.gl/7miXMEmDyBrKGWtb8",
+    }
     tests = [("mtb", "Mañana", "09:30", "11:00"), ("gravel", "Mañana", "11:30", "13:00")]
     # Test adicional: sábado 12 en Bike Philosophy, solo Spark RC (MTB), por la tarde.
     extra = {"2026-12-12": [("mtb", "Tarde", "15:00", "16:30")]}
@@ -119,10 +126,12 @@ def main():
                 ("date", date), ("weekday", weekday), ("city", city), ("store", store),
                 ("type", typ), ("period", period), ("start", start), ("end", end),
                 ("arrive", minus(start, ARRIVE_MIN)),
+                ("mapUrl", MAPS[store]),
             ]))
 
     # Logos de tienda (PNG convertidos desde los TIFF "logo <tienda>.tiff" de la carpeta del proyecto).
     # Bike Philosophy y Cordoba Bike traen fondo negro propio -> baldosa negra; los otros son transparentes -> baldosa blanca.
+    # (logo, color de la baldosa, enlace de Google Maps facilitado por el cliente)
     logos = {
         "Special Bikes":        ("assets/img/stores/special-bikes.png", "#ffffff"),
         "Bike Philosophy":      ("assets/img/stores/bike-philosophy.png", "#000000"),
@@ -132,7 +141,8 @@ def main():
     day_list = []
     for d, w, c, s in days:
         logo, bg = logos[s]
-        day_list.append(OrderedDict([("date", d), ("weekday", w), ("city", c), ("store", s), ("logo", logo), ("logoBg", bg)]))
+        maps = MAPS[s]
+        day_list.append(OrderedDict([("date", d), ("weekday", w), ("city", c), ("store", s), ("logo", logo), ("logoBg", bg), ("mapUrl", maps)]))
     data = OrderedDict([("bikes", bikes), ("sessions", sessions), ("days", day_list)])
     js = "/* GENERADO por tools/build_data.py - no editar a mano */\nwindow.SCOTT_DATA = " + json.dumps(data, ensure_ascii=False, indent=2) + ";\n"
     (ROOT / "js" / "data.js").write_text(js, encoding="utf-8")
@@ -140,7 +150,7 @@ def main():
     # 4) bloque STOCK de Apps Script (mismos datos: el servidor no se fia del navegador)
     gs_stock = {b["id"]: dict(b["sizes"]) for b in bikes}
     gs_sessions = {s["id"]: {"type": s["type"], "date": s["date"], "city": s["city"], "store": s["store"],
-                             "start": s["start"], "end": s["end"], "arrive": s["arrive"]} for s in sessions}
+                             "start": s["start"], "end": s["end"], "arrive": s["arrive"], "map": s["mapUrl"]} for s in sessions}
     gs_bikes = {b["id"]: {"type": b["type"], "label": f'{b["family"]} {b["name"]} · {b["color"]}'} for b in bikes}
     block = ("// <STOCK-BEGIN> generado por tools/build_data.py\n"
              f"var STOCK = {json.dumps(gs_stock, ensure_ascii=False)};\n"

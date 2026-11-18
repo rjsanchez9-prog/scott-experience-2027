@@ -103,7 +103,8 @@ window.SCOTT_DATA = {
       "period": "Mañana",
       "start": "09:30",
       "end": "11:00",
-      "arrive": "09:00"
+      "arrive": "09:00",
+      "mapUrl": "https://maps.app.goo.gl/Sm2qDsy3iYJcYGqA6"
     },
     {
       "id": "2026-12-11_algeciras_gravel_1130",
@@ -115,7 +116,8 @@ window.SCOTT_DATA = {
       "period": "Mañana",
       "start": "11:30",
       "end": "13:00",
-      "arrive": "11:00"
+      "arrive": "11:00",
+      "mapUrl": "https://maps.app.goo.gl/Sm2qDsy3iYJcYGqA6"
     },
     {
       "id": "2026-12-12_malaga_mtb_0930",
@@ -127,7 +129,8 @@ window.SCOTT_DATA = {
       "period": "Mañana",
       "start": "09:30",
       "end": "11:00",
-      "arrive": "09:00"
+      "arrive": "09:00",
+      "mapUrl": "https://maps.app.goo.gl/jEWQp1VuHFSCoQHi9"
     },
     {
       "id": "2026-12-12_malaga_gravel_1130",
@@ -139,7 +142,8 @@ window.SCOTT_DATA = {
       "period": "Mañana",
       "start": "11:30",
       "end": "13:00",
-      "arrive": "11:00"
+      "arrive": "11:00",
+      "mapUrl": "https://maps.app.goo.gl/jEWQp1VuHFSCoQHi9"
     },
     {
       "id": "2026-12-12_malaga_mtb_1500",
@@ -151,7 +155,8 @@ window.SCOTT_DATA = {
       "period": "Tarde",
       "start": "15:00",
       "end": "16:30",
-      "arrive": "14:30"
+      "arrive": "14:30",
+      "mapUrl": "https://maps.app.goo.gl/jEWQp1VuHFSCoQHi9"
     },
     {
       "id": "2026-12-13_malaga_mtb_0930",
@@ -163,7 +168,8 @@ window.SCOTT_DATA = {
       "period": "Mañana",
       "start": "09:30",
       "end": "11:00",
-      "arrive": "09:00"
+      "arrive": "09:00",
+      "mapUrl": "https://maps.app.goo.gl/jEWQp1VuHFSCoQHi9"
     },
     {
       "id": "2026-12-13_malaga_gravel_1130",
@@ -175,7 +181,8 @@ window.SCOTT_DATA = {
       "period": "Mañana",
       "start": "11:30",
       "end": "13:00",
-      "arrive": "11:00"
+      "arrive": "11:00",
+      "mapUrl": "https://maps.app.goo.gl/jEWQp1VuHFSCoQHi9"
     },
     {
       "id": "2026-12-14_cordoba_mtb_0930",
@@ -187,7 +194,8 @@ window.SCOTT_DATA = {
       "period": "Mañana",
       "start": "09:30",
       "end": "11:00",
-      "arrive": "09:00"
+      "arrive": "09:00",
+      "mapUrl": "https://maps.app.goo.gl/A6LpH7HkqhRABzZA7"
     },
     {
       "id": "2026-12-14_cordoba_gravel_1130",
@@ -199,7 +207,8 @@ window.SCOTT_DATA = {
       "period": "Mañana",
       "start": "11:30",
       "end": "13:00",
-      "arrive": "11:00"
+      "arrive": "11:00",
+      "mapUrl": "https://maps.app.goo.gl/A6LpH7HkqhRABzZA7"
     },
     {
       "id": "2026-12-15_andujar_mtb_0930",
@@ -211,7 +220,8 @@ window.SCOTT_DATA = {
       "period": "Mañana",
       "start": "09:30",
       "end": "11:00",
-      "arrive": "09:00"
+      "arrive": "09:00",
+      "mapUrl": "https://maps.app.goo.gl/7miXMEmDyBrKGWtb8"
     },
     {
       "id": "2026-12-15_andujar_gravel_1130",
@@ -223,7 +233,8 @@ window.SCOTT_DATA = {
       "period": "Mañana",
       "start": "11:30",
       "end": "13:00",
-      "arrive": "11:00"
+      "arrive": "11:00",
+      "mapUrl": "https://maps.app.goo.gl/7miXMEmDyBrKGWtb8"
     }
   ],
   "days": [
@@ -233,7 +244,8 @@ window.SCOTT_DATA = {
       "city": "Algeciras",
       "store": "Special Bikes",
       "logo": "assets/img/stores/special-bikes.png",
-      "logoBg": "#ffffff"
+      "logoBg": "#ffffff",
+      "mapUrl": "https://maps.app.goo.gl/Sm2qDsy3iYJcYGqA6"
     },
     {
       "date": "2026-12-12",
@@ -241,7 +253,8 @@ window.SCOTT_DATA = {
       "city": "Málaga",
       "store": "Bike Philosophy",
       "logo": "assets/img/stores/bike-philosophy.png",
-      "logoBg": "#000000"
+      "logoBg": "#000000",
+      "mapUrl": "https://maps.app.goo.gl/jEWQp1VuHFSCoQHi9"
     },
     {
       "date": "2026-12-13",
@@ -249,7 +262,8 @@ window.SCOTT_DATA = {
       "city": "Málaga",
       "store": "Bike Philosophy",
       "logo": "assets/img/stores/bike-philosophy.png",
-      "logoBg": "#000000"
+      "logoBg": "#000000",
+      "mapUrl": "https://maps.app.goo.gl/jEWQp1VuHFSCoQHi9"
     },
     {
       "date": "2026-12-14",
@@ -257,7 +271,8 @@ window.SCOTT_DATA = {
       "city": "Córdoba",
       "store": "Córdoba Bike",
       "logo": "assets/img/stores/cordoba-bike.png",
-      "logoBg": "#000000"
+      "logoBg": "#000000",
+      "mapUrl": "https://maps.app.goo.gl/A6LpH7HkqhRABzZA7"
     },
     {
       "date": "2026-12-15",
@@ -265,7 +280,8 @@ window.SCOTT_DATA = {
       "city": "Andújar",
       "store": "Kanina Bikes Andújar",
       "logo": "assets/img/stores/kanina-bikes.png",
-      "logoBg": "#ffffff"
+      "logoBg": "#ffffff",
+      "mapUrl": "https://maps.app.goo.gl/7miXMEmDyBrKGWtb8"
     }
   ]
 };

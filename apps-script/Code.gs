@@ -636,9 +636,9 @@ function pruebaRecordatorio() {
   var sh = getSheet_();
   var ref = 'SCX-TEST-' + Utilities.formatDate(new Date(), 'Europe/Madrid', 'HHmmss');
   var bikeId = 'mtb-team-issue-carbon-black';
-  var row = ['2026-10-01 10:00:00', ref, '2026-12-14', '09:30-11:00', 'Córdoba', 'Córdoba Bike', 'mtb', BIKES[bikeId].label, 'M',
+  var row = ['2026-08-01 10:00:00', ref, '2026-12-14', '09:30-11:00', 'Córdoba', 'Córdoba Bike', 'mtb', BIKES[bikeId].label, 'M',
     'Prueba', 'Recordatorio', 'TEST000', '1990-01-01', '600000000', ORGANIZER_EMAIL, 'Contacto', '611000000', 'SI', WAIVER_VERSION,
-    'prueba', '2026-10-01T10:00:00Z', 'SI', 'CONFIRMADA', 'tokenprueba0000000000000000000000', '', '2026-10-01 10:00:00', 74, '', ''];
+    'prueba', '2026-08-01T10:00:00Z', 'SI', 'CONFIRMADA', 'tokenprueba0000000000000000000000', '', '2026-08-01 10:00:00', 74, '', ''];
   sh.appendRow(row);
   SpreadsheetApp.flush();
   try {

@@ -26,6 +26,28 @@
   function sessionById(id) { return D.sessions.filter(function (s) { return s.id === id; })[0]; }
   function hm(s) { return s.start + "–" + s.end; }
   function dayByDate(date) { return D.days.filter(function (d) { return d.date === date; })[0]; }
+  // Dias cuyas reservas aun no estan abiertas: los publica el servidor (BLOCKED_DATES en Code.gs), asi se abren sin tocar la web
+  function isBlocked(date) { return !!state.blocked[date]; }
+  // Horario de un dia agrupando los tests que coinciden en hora: "MTB + Gravel 10:00–11:30 · ..." (un dia normal sigue saliendo "MTB 09:30–11:00 · Gravel 11:30–13:00")
+  function dayTestsText(date) {
+    var groups = [], idx = {};
+    sessionsOfDay(date).forEach(function (s) {
+      var k = hm(s);
+      if (!(k in idx)) { idx[k] = groups.length; groups.push({ hm: k, types: [] }); }
+      groups[idx[k]].types.push(TYPE_SHORT[s.type]);
+    });
+    return groups.map(function (g) { return g.types.join(" + ") + " " + g.hm; }).join(" · ");
+  }
+  // Dos tests se solapan si uno empieza antes de que acabe el otro (horas HH:MM con cero a la izquierda)
+  function overlaps(a, b) { return a.date === b.date && a.start < b.end && b.start < a.end; }
+  // Test ya elegido de OTRA familia (MTB/gravel) que coincide en hora con s: mientras siga elegido, s queda bloqueado (no se puede estar en los dos)
+  function conflictOf(s) {
+    var found = null;
+    sessionsOfDay(s.date).forEach(function (o) {
+      if (!found && o.id !== s.id && o.type !== s.type && state.enabled[o.id] && overlaps(o, s)) found = o;
+    });
+    return found;
+  }
   function norm(s) {
     s = String(s).toLowerCase();
     if (s.normalize) s = s.normalize("NFD").replace(/[̀-ͯ]/g, "");   // "García" = "Garcia"
@@ -47,7 +69,7 @@
 
   var state = {
     step: 1, dayDate: null, enabled: {}, picks: {},
-    person: null, waiverRead: false, booked: {}, availabilityFailed: false, submitting: false, notice: ""
+    person: null, waiverRead: false, booked: {}, blocked: {}, availabilityFailed: false, submitting: false, notice: ""
   };
 
   /* ---------- Disponibilidad ---------- */
@@ -64,7 +86,12 @@
     if (DEMO) { state.booked = demoLoad(); return Promise.resolve(); }
     return fetch(C.API_URL + "?action=availability", { cache: "no-store" })
       .then(function (r) { return r.json(); })
-      .then(function (j) { if (j && j.ok) { state.booked = j.booked || {}; state.availabilityFailed = false; } else throw new Error("bad"); })
+      .then(function (j) {
+        if (j && j.ok) {
+          state.booked = j.booked || {}; state.availabilityFailed = false;
+          state.blocked = {}; (j.blocked || []).forEach(function (d) { state.blocked[d] = true; });
+        } else throw new Error("bad");
+      })
       .catch(function () { state.availabilityFailed = true; });
   }
   function remaining(sessionId, bike, size) {
@@ -148,14 +175,22 @@
   }
 
   /* ---------- Paso 1: dias ---------- */
+  function markLockedChips() {
+    $$(".date-chip").forEach(function (c) {
+      var locked = isBlocked(c.getAttribute("data-date"));
+      c.classList.toggle("is-locked", locked); c.disabled = locked;
+      var arr = c.querySelector(".arr");
+      if (arr) arr.textContent = locked ? "· próximamente" : "→";
+    });
+  }
   function renderDays() {
     $("#day-grid").innerHTML = D.days.map(function (d) {
       var p = parseDate(d.date);
-      var sel = state.dayDate === d.date;
-      return '<button type="button" class="day-card" data-date="' + d.date + '" aria-pressed="' + sel + '">' +
+      var locked = isBlocked(d.date), sel = state.dayDate === d.date && !locked;
+      return '<button type="button" class="day-card' + (locked ? " is-locked" : "") + '" data-date="' + d.date + '" aria-pressed="' + sel + '"' + (locked ? " disabled" : "") + ">" +
         '<span class="day-date"><div class="dow">' + esc(d.weekday.slice(0, 3)) + '</div><div class="dnum">' + p.d + '</div><div class="dmon">' + MONTHS[p.m - 1] + "</div></span>" +
         '<span class="logo-tile sm" style="background:' + d.logoBg + '"><img src="' + esc(d.logo) + '" alt="Logo ' + esc(d.store) + '" loading="lazy"></span>' +
-        '<span class="day-info"><div class="city">' + esc(d.city) + '</div><div class="store">' + esc(d.store) + '</div><div class="tests">' + sessionsOfDay(d.date).map(function (s) { return TYPE_SHORT[s.type] + " " + hm(s); }).join(" · ") + "</div></span>" +
+        '<span class="day-info"><div class="city">' + esc(d.city) + '</div><div class="store">' + esc(d.store) + '</div><div class="tests">' + esc(dayTestsText(d.date)) + "</div>" + (locked ? '<div class="lock-note">Reservas próximamente</div>' : "") + "</span>" +
         '<span class="day-radio" aria-hidden="true"></span></button>';
     }).join("");
   }
@@ -228,6 +263,7 @@
     var s = sessionById(sid), type = s.type;
     var left = sessionRemaining(s), cap = sessionCapacity(type);
     var on = !!state.enabled[sid];
+    var conflict = on ? null : conflictOf(s);
     var badgeCls = left === 0 ? "badge out" : (left <= 3 ? "badge low" : "badge");
     var badgeTxt = left === 0 ? "Completo" : (left + " de " + cap + " libres");
     var pick = state.picks[sid];
@@ -246,10 +282,12 @@
           '<div class="pbody"><div class="pname">' + esc(bikeName(b)) + '</div><div class="pcolor">' + esc(b.color) + " · pedales " + esc(b.pedal) + '</div><div class="size-chips">' + sizes + "</div></div></div>";
       }).join("") + "</div></div>";
     }
-    return '<div class="test-block' + (on ? " on" : "") + '" data-block="' + sid + '">' +
-      '<button type="button" class="test-head" data-toggle="' + sid + '" aria-expanded="' + on + '"' + (left === 0 ? " disabled" : "") + '>' +
+    return '<div class="test-block' + (on ? " on" : "") + (conflict ? " blocked" : "") + '" data-block="' + sid + '">' +
+      '<button type="button" class="test-head" data-toggle="' + sid + '" aria-expanded="' + on + '"' + (left === 0 || conflict ? " disabled" : "") + '>' +
       '<span class="box" aria-hidden="true">✓</span><span class="left"><div class="t-title">' + TYPE_LABEL[type] + " · " + esc(s.period) + '</div><div class="t-sub">' + esc(hm(s)) + " · " + esc(s.store) + '</div><div class="t-arrive">Presentarse a las <strong>' + esc(s.arrive) + "</strong> (30 min antes)</div></span>" +
-      '<span class="' + badgeCls + '">' + badgeTxt + "</span></button>" + body + "</div>";
+      '<span class="' + badgeCls + '">' + badgeTxt + "</span></button>" +
+      (conflict ? '<div class="t-conflict">Coincide en hora con tu test de ' + TYPE_SHORT[conflict.type] + " de las " + esc(conflict.start) + ". Quita ese test si prefieres hacer este.</div>" : "") +
+      body + "</div>";
   }
   function refreshBlock(sid) {
     var el = $('[data-block="' + sid + '"]');
@@ -393,6 +431,7 @@
       DUPLICATE: res.detail || "Ya existe una reserva con este documento de identidad para ese test.",
       WAIVER: "No se ha podido validar la aceptación del descargo. Revisa la firma (debe coincidir con tu nombre y apellidos).",
       INVALID: res.detail || "Algún dato no es válido. Revísalos e inténtalo de nuevo.",
+      BLOCKED: res.detail || "Las reservas de ese día abrirán próximamente.",
       TOO_FAST: res.detail, TOO_MANY: res.detail, BUSY: res.detail, MAIL: res.detail,
       EXPIRED: res.detail
     };
@@ -452,7 +491,7 @@
 
   // Desde los chips de fecha/ciudad de la cabecera: preselecciona ese dia/tienda y lleva directo a elegir bici
   function jumpToDay(date) {
-    if (state.submitting) return;
+    if (state.submitting || isBlocked(date)) return;
     if (state.step === "done") { resetState(); renderDays(); }
     if (state.dayDate !== date) { state.enabled = {}; state.picks = {}; }
     state.dayDate = date;
@@ -471,7 +510,7 @@
   function resetAll() {
     resetState();
     renderDays();
-    loadAvailability().then(function () { go(1); });
+    loadAvailability().then(function () { renderDays(); markLockedChips(); go(1); });
   }
 
   /* ---------- Eventos ---------- */
@@ -481,7 +520,7 @@
     renderGallery(); renderDays();
 
     $("#day-grid").addEventListener("click", function (e) {
-      var b = e.target.closest(".day-card"); if (!b) return;
+      var b = e.target.closest(".day-card"); if (!b || b.disabled) return;
       if (state.dayDate !== b.getAttribute("data-date")) { state.enabled = {}; state.picks = {}; }
       state.dayDate = b.getAttribute("data-date");
       $$(".day-card").forEach(function (c) { c.setAttribute("aria-pressed", String(c === b)); });
@@ -493,13 +532,16 @@
       if (head) {
         var t = head.getAttribute("data-toggle"); state.enabled[t] = !state.enabled[t]; if (!state.enabled[t]) state.picks[t] = null;
         if (state.enabled[t]) {
-          // un solo test de cada tipo por dia: al elegir uno se desmarca el otro del mismo tipo
+          // un solo test de cada tipo por dia: al elegir uno se desmarca el otro del mismo tipo.
+          // (El test de la otra familia que coincide en hora no se desmarca: queda bloqueado, ver conflictOf)
           var me = sessionById(t);
           sessionsOfDay(state.dayDate).forEach(function (o) {
             if (o.id !== t && o.type === me.type && state.enabled[o.id]) { state.enabled[o.id] = false; state.picks[o.id] = null; refreshBlock(o.id); }
           });
         }
-        refreshBlock(t); return;
+        // refrescar todos los bloques del dia: los que coinciden en hora con este se bloquean o se desbloquean
+        sessionsOfDay(state.dayDate).forEach(function (o) { refreshBlock(o.id); });
+        return;
       }
       var sz = e.target.closest(".size-btn");
       if (sz && !sz.disabled) {
@@ -573,7 +615,8 @@
     // El paso 1 se pinta de inmediato; el stock se refresca cuando llega (sin devolver al usuario al paso 1 si ya avanzo)
     renderGallery(); go(1, { silent: true });
     loadAvailability().then(function () {
-      renderGallery();
+      renderGallery(); renderDays(); markLockedChips();
+      if (state.dayDate && isBlocked(state.dayDate)) { state.dayDate = null; state.enabled = {}; state.picks = {}; if (state.step !== 1) go(1); updateNext(); }
       if (state.step === 2) { renderTestBlocks(); }
     });
   }

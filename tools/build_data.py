@@ -108,8 +108,16 @@ def main():
         "Kanina Bikes Andújar": "https://maps.app.goo.gl/7miXMEmDyBrKGWtb8",
     }
     tests = [("mtb", "Mañana", "09:30", "11:00"), ("gravel", "Mañana", "11:30", "13:00")]
-    # Test adicional: sábado 12 en Bike Philosophy, solo Spark RC (MTB), por la tarde.
-    extra = {"2026-12-12": [("mtb", "Tarde", "15:00", "16:30")]}
+    # Bike Philosophy (Málaga): por turnos. En cada turno hay a la vez una salida de MTB (Spark RC) y otra de gravel (Addict Gravel).
+    # Sábado 12: 3 turnos de hasta 1 h 30 min. Domingo 13: 3 turnos de 1 h (reservas bloqueadas desde Code.gs: BLOCKED_DATES).
+    turns = {
+        "2026-12-12": [("10:00", "11:30"), ("12:00", "13:30"), ("15:00", "16:30")],
+        "2026-12-13": [("10:00", "11:00"), ("11:30", "12:30"), ("13:00", "14:00")],
+    }
+
+    def period_of(start):
+        h = int(start.split(":")[0])
+        return "Mañana" if h < 12 else ("Mediodía" if h < 15 else "Tarde")
 
     def minus(hm, minutes):
         h, m = map(int, hm.split(":"))
@@ -119,7 +127,10 @@ def main():
     sessions = []
     for date, weekday, city, store in days:
         slug = re.sub(r"[^a-z0-9]+", "-", city.lower().replace("ú", "u").replace("á", "a").replace("ó", "o"))
-        day_tests = sorted(tests + extra.get(date, []), key=lambda t: t[2])
+        if date in turns:
+            day_tests = [(typ, period_of(st), st, en) for st, en in turns[date] for typ in ("mtb", "gravel")]
+        else:
+            day_tests = sorted(tests, key=lambda t: t[2])
         for typ, period, start, end in day_tests:
             sessions.append(OrderedDict([
                 ("id", f"{date}_{slug}_{typ}_{start.replace(':', '')}"),

@@ -45,12 +45,16 @@ var STORE_COORDINATORS = {};
 // Interruptor de los avisos a coordinadores. Mientras la version no sea definitiva debe estar en false: las reservas y
 // cancelaciones (reales o de prueba) NO se copian a los coordinadores. Poner true solo cuando se de la version por cerrada.
 var NOTIFY_COORDINATORS = true;
+
+// Dias cuyas reservas AUN NO estan abiertas (fecha yyyy-MM-dd). La web los muestra como "Proximamente" y el servidor rechaza cualquier reserva de ese dia.
+// Para abrirlos: quitar la fecha (dejar {}), guardar y publicar una VERSION NUEVA de la implementacion. No hace falta tocar la web.
+var BLOCKED_DATES = { '2026-12-13': true };   // Bike Philosophy (Malaga), domingo 13: bloqueado hasta nuevo aviso
 // ==================================
 
 // <STOCK-BEGIN> generado por tools/build_data.py
 var STOCK = {"mtb-team-issue-carbon-black": {"S": 1, "M": 6, "XL": 1}, "mtb-world-cup-evo-rush-white-carbon-black": {"S": 1, "M": 1}, "mtb-world-cup-cumulus-white-carbon-black": {"L": 2}, "gravel-20-watery-black": {"S": 1, "M": 3, "L": 1, "XL": 1}, "gravel-20-mojito-green": {"M": 1}, "gravel-10-lupine-grey": {"M": 1}};
 var BIKES = {"mtb-team-issue-carbon-black": {"type": "mtb", "label": "Spark RC Team Issue · Carbon Black"}, "mtb-world-cup-evo-rush-white-carbon-black": {"type": "mtb", "label": "Spark RC World Cup EVO · Rush White / Carbon Black"}, "mtb-world-cup-cumulus-white-carbon-black": {"type": "mtb", "label": "Spark RC World Cup · Cumulus White / Carbon Black"}, "gravel-20-watery-black": {"type": "gravel", "label": "Addict Gravel 20 · Watery Black"}, "gravel-20-mojito-green": {"type": "gravel", "label": "Addict Gravel 20 · Mojito Green"}, "gravel-10-lupine-grey": {"type": "gravel", "label": "Addict Gravel 10 · Lupine Grey"}};
-var SESSIONS = {"2026-12-11_algeciras_mtb_0930": {"type": "mtb", "date": "2026-12-11", "city": "Algeciras", "store": "Special Bikes", "start": "09:30", "end": "11:00", "arrive": "09:00", "map": "https://maps.app.goo.gl/Sm2qDsy3iYJcYGqA6"}, "2026-12-11_algeciras_gravel_1130": {"type": "gravel", "date": "2026-12-11", "city": "Algeciras", "store": "Special Bikes", "start": "11:30", "end": "13:00", "arrive": "11:00", "map": "https://maps.app.goo.gl/Sm2qDsy3iYJcYGqA6"}, "2026-12-12_malaga_mtb_0930": {"type": "mtb", "date": "2026-12-12", "city": "Málaga", "store": "Bike Philosophy", "start": "09:30", "end": "11:00", "arrive": "09:00", "map": "https://maps.app.goo.gl/jEWQp1VuHFSCoQHi9"}, "2026-12-12_malaga_gravel_1130": {"type": "gravel", "date": "2026-12-12", "city": "Málaga", "store": "Bike Philosophy", "start": "11:30", "end": "13:00", "arrive": "11:00", "map": "https://maps.app.goo.gl/jEWQp1VuHFSCoQHi9"}, "2026-12-12_malaga_mtb_1500": {"type": "mtb", "date": "2026-12-12", "city": "Málaga", "store": "Bike Philosophy", "start": "15:00", "end": "16:30", "arrive": "14:30", "map": "https://maps.app.goo.gl/jEWQp1VuHFSCoQHi9"}, "2026-12-13_malaga_mtb_0930": {"type": "mtb", "date": "2026-12-13", "city": "Málaga", "store": "Bike Philosophy", "start": "09:30", "end": "11:00", "arrive": "09:00", "map": "https://maps.app.goo.gl/jEWQp1VuHFSCoQHi9"}, "2026-12-13_malaga_gravel_1130": {"type": "gravel", "date": "2026-12-13", "city": "Málaga", "store": "Bike Philosophy", "start": "11:30", "end": "13:00", "arrive": "11:00", "map": "https://maps.app.goo.gl/jEWQp1VuHFSCoQHi9"}, "2026-12-14_cordoba_mtb_0930": {"type": "mtb", "date": "2026-12-14", "city": "Córdoba", "store": "Córdoba Bike", "start": "09:30", "end": "11:00", "arrive": "09:00", "map": "https://maps.app.goo.gl/A6LpH7HkqhRABzZA7"}, "2026-12-14_cordoba_gravel_1130": {"type": "gravel", "date": "2026-12-14", "city": "Córdoba", "store": "Córdoba Bike", "start": "11:30", "end": "13:00", "arrive": "11:00", "map": "https://maps.app.goo.gl/A6LpH7HkqhRABzZA7"}, "2026-12-15_andujar_mtb_0930": {"type": "mtb", "date": "2026-12-15", "city": "Andújar", "store": "Kanina Bikes Andújar", "start": "09:30", "end": "11:00", "arrive": "09:00", "map": "https://maps.app.goo.gl/7miXMEmDyBrKGWtb8"}, "2026-12-15_andujar_gravel_1130": {"type": "gravel", "date": "2026-12-15", "city": "Andújar", "store": "Kanina Bikes Andújar", "start": "11:30", "end": "13:00", "arrive": "11:00", "map": "https://maps.app.goo.gl/7miXMEmDyBrKGWtb8"}};
+var SESSIONS = {"2026-12-11_algeciras_mtb_0930": {"type": "mtb", "date": "2026-12-11", "city": "Algeciras", "store": "Special Bikes", "start": "09:30", "end": "11:00", "arrive": "09:00", "map": "https://maps.app.goo.gl/Sm2qDsy3iYJcYGqA6"}, "2026-12-11_algeciras_gravel_1130": {"type": "gravel", "date": "2026-12-11", "city": "Algeciras", "store": "Special Bikes", "start": "11:30", "end": "13:00", "arrive": "11:00", "map": "https://maps.app.goo.gl/Sm2qDsy3iYJcYGqA6"}, "2026-12-12_malaga_mtb_1000": {"type": "mtb", "date": "2026-12-12", "city": "Málaga", "store": "Bike Philosophy", "start": "10:00", "end": "11:30", "arrive": "09:30", "map": "https://maps.app.goo.gl/jEWQp1VuHFSCoQHi9"}, "2026-12-12_malaga_gravel_1000": {"type": "gravel", "date": "2026-12-12", "city": "Málaga", "store": "Bike Philosophy", "start": "10:00", "end": "11:30", "arrive": "09:30", "map": "https://maps.app.goo.gl/jEWQp1VuHFSCoQHi9"}, "2026-12-12_malaga_mtb_1200": {"type": "mtb", "date": "2026-12-12", "city": "Málaga", "store": "Bike Philosophy", "start": "12:00", "end": "13:30", "arrive": "11:30", "map": "https://maps.app.goo.gl/jEWQp1VuHFSCoQHi9"}, "2026-12-12_malaga_gravel_1200": {"type": "gravel", "date": "2026-12-12", "city": "Málaga", "store": "Bike Philosophy", "start": "12:00", "end": "13:30", "arrive": "11:30", "map": "https://maps.app.goo.gl/jEWQp1VuHFSCoQHi9"}, "2026-12-12_malaga_mtb_1500": {"type": "mtb", "date": "2026-12-12", "city": "Málaga", "store": "Bike Philosophy", "start": "15:00", "end": "16:30", "arrive": "14:30", "map": "https://maps.app.goo.gl/jEWQp1VuHFSCoQHi9"}, "2026-12-12_malaga_gravel_1500": {"type": "gravel", "date": "2026-12-12", "city": "Málaga", "store": "Bike Philosophy", "start": "15:00", "end": "16:30", "arrive": "14:30", "map": "https://maps.app.goo.gl/jEWQp1VuHFSCoQHi9"}, "2026-12-13_malaga_mtb_1000": {"type": "mtb", "date": "2026-12-13", "city": "Málaga", "store": "Bike Philosophy", "start": "10:00", "end": "11:00", "arrive": "09:30", "map": "https://maps.app.goo.gl/jEWQp1VuHFSCoQHi9"}, "2026-12-13_malaga_gravel_1000": {"type": "gravel", "date": "2026-12-13", "city": "Málaga", "store": "Bike Philosophy", "start": "10:00", "end": "11:00", "arrive": "09:30", "map": "https://maps.app.goo.gl/jEWQp1VuHFSCoQHi9"}, "2026-12-13_malaga_mtb_1130": {"type": "mtb", "date": "2026-12-13", "city": "Málaga", "store": "Bike Philosophy", "start": "11:30", "end": "12:30", "arrive": "11:00", "map": "https://maps.app.goo.gl/jEWQp1VuHFSCoQHi9"}, "2026-12-13_malaga_gravel_1130": {"type": "gravel", "date": "2026-12-13", "city": "Málaga", "store": "Bike Philosophy", "start": "11:30", "end": "12:30", "arrive": "11:00", "map": "https://maps.app.goo.gl/jEWQp1VuHFSCoQHi9"}, "2026-12-13_malaga_mtb_1300": {"type": "mtb", "date": "2026-12-13", "city": "Málaga", "store": "Bike Philosophy", "start": "13:00", "end": "14:00", "arrive": "12:30", "map": "https://maps.app.goo.gl/jEWQp1VuHFSCoQHi9"}, "2026-12-13_malaga_gravel_1300": {"type": "gravel", "date": "2026-12-13", "city": "Málaga", "store": "Bike Philosophy", "start": "13:00", "end": "14:00", "arrive": "12:30", "map": "https://maps.app.goo.gl/jEWQp1VuHFSCoQHi9"}, "2026-12-14_cordoba_mtb_0930": {"type": "mtb", "date": "2026-12-14", "city": "Córdoba", "store": "Córdoba Bike", "start": "09:30", "end": "11:00", "arrive": "09:00", "map": "https://maps.app.goo.gl/A6LpH7HkqhRABzZA7"}, "2026-12-14_cordoba_gravel_1130": {"type": "gravel", "date": "2026-12-14", "city": "Córdoba", "store": "Córdoba Bike", "start": "11:30", "end": "13:00", "arrive": "11:00", "map": "https://maps.app.goo.gl/A6LpH7HkqhRABzZA7"}, "2026-12-15_andujar_mtb_0930": {"type": "mtb", "date": "2026-12-15", "city": "Andújar", "store": "Kanina Bikes Andújar", "start": "09:30", "end": "11:00", "arrive": "09:00", "map": "https://maps.app.goo.gl/7miXMEmDyBrKGWtb8"}, "2026-12-15_andujar_gravel_1130": {"type": "gravel", "date": "2026-12-15", "city": "Andújar", "store": "Kanina Bikes Andújar", "start": "11:30", "end": "13:00", "arrive": "11:00", "map": "https://maps.app.goo.gl/7miXMEmDyBrKGWtb8"}};
 // <STOCK-END>
 
 var HEADERS = ['Fecha registro', 'Referencia', 'Fecha test', 'Hora', 'Ciudad', 'Tienda', 'Test', 'Modelo',
@@ -280,11 +284,20 @@ function personText_(r) {
 // GET
 //   ?action=availability                 -> { ok, booked: { "sesion|bici|talla": n } }
 //   ?action=status&ref=...&t=...         -> estado y detalle de una reserva (requiere el token del email)
+function blockedList_() {
+  var out = [];
+  for (var d in BLOCKED_DATES) if (BLOCKED_DATES[d]) out.push(d);
+  return out;
+}
+
+// Dos tests se solapan si uno empieza antes de que acabe el otro (horas "HH:MM" con cero a la izquierda, comparables como texto)
+function overlap_(startA, endA, startB, endB) { return startA < endB && startB < endA; }
+
 function doGet(e) {
   var p = (e && e.parameter) || {};
   var action = p.action || 'availability';
   if (action === 'availability') {
-    return json_({ ok: true, booked: countBooked_(allRows_(getSheet_()), new Date().getTime(), '') });
+    return json_({ ok: true, booked: countBooked_(allRows_(getSheet_()), new Date().getTime(), ''), blocked: blockedList_() });
   }
   if (action === 'status') {
     var rows = allRows_(getSheet_());
@@ -390,6 +403,7 @@ function create_(body) {
   // Un mismo documento no puede repetir sesion; mismo dia: maximo un test de cada tipo (el email puede compartirse)
   var docK = docKey_(clean_(p.documento, 30));
   var existing = {};
+  var slotsOf = {};
   var pendingRefs = {}, pendingCount = 0, activeRefs = {}, activeCount = 0;
   for (var k = 0; k < rows.length; k++) {
     var r = rows[k].r;
@@ -397,6 +411,7 @@ function create_(body) {
     var dk = docKey_(r[COL_DOC]);
     existing[dk + '|' + sid_(r[2], r[4], r[6], r[3])] = true;
     existing[dk + '|day|' + txt_(r[2]) + '|' + r[6]] = true;   // mismo dia y tipo
+    (slotsOf[dk] = slotsOf[dk] || []).push({ date: txt_(r[2]), start: String(r[3]).slice(0, 5), end: String(r[3]).slice(6, 11) });   // horario ocupado
     if (String(r[COL_EMAIL]).toLowerCase() === email) {
       if (!activeRefs[r[COL_REF]]) { activeRefs[r[COL_REF]] = true; activeCount++; }
       if (String(r[COL_ESTADO]) === 'PENDIENTE' && !pendingRefs[r[COL_REF]]) { pendingRefs[r[COL_REF]] = true; pendingCount++; }
@@ -411,12 +426,22 @@ function create_(body) {
     var s = SESSIONS[b.sessionId];
     var bike = BIKES[b.bikeId];
     if (!s || !bike || bike.type !== s.type) return json_({ ok: false, error: 'INVALID', detail: 'Sesion o bicicleta no valida.' });
+    if (BLOCKED_DATES[s.date]) return json_({ ok: false, error: 'BLOCKED', detail: 'Las reservas de ese dia abriran proximamente.' });
     if (!STOCK[b.bikeId] || !(b.size in STOCK[b.bikeId])) return json_({ ok: false, error: 'INVALID', detail: 'Talla no valida.' });
     if (seen[b.sessionId]) return json_({ ok: false, error: 'INVALID', detail: 'Sesion repetida.' });
     seen[b.sessionId] = true;
     var dayType = s.date + '|' + s.type;
     if (seen[dayType]) return json_({ ok: false, error: 'INVALID', detail: 'Solo un test de cada tipo por dia.' });
     seen[dayType] = true;
+    // No se puede reservar dos tests que se solapan en el tiempo (p. ej. MTB y gravel a la misma hora): no se puede estar en los dos
+    for (var o = 0; o < j; o++) {
+      var so = SESSIONS[bookings[o].sessionId];
+      if (so && so.date === s.date && overlap_(s.start, s.end, so.start, so.end)) return json_({ ok: false, error: 'INVALID', detail: 'Has elegido dos tests a la misma hora. Elige solo uno en cada turno.' });
+    }
+    var mySlots = slotsOf[docK] || [];
+    for (var m = 0; m < mySlots.length; m++) {
+      if (mySlots[m].date === s.date && overlap_(s.start, s.end, mySlots[m].start, mySlots[m].end)) return json_({ ok: false, error: 'DUPLICATE', detail: 'Ya tienes otro test reservado a esa hora con este documento.' });
+    }
     if (existing[docK + '|day|' + s.date + '|' + s.type]) return json_({ ok: false, error: 'DUPLICATE', detail: 'Ya existe una reserva (confirmada o pendiente de confirmar) de este tipo de test ese dia con este documento.' });
     if (existing[docK + '|' + b.sessionId]) return json_({ ok: false, error: 'DUPLICATE', detail: 'Ya existe una reserva (confirmada o pendiente de confirmar) para este test con este documento.' });
     var key = b.sessionId + '|' + b.bikeId + '|' + b.size;

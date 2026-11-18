@@ -154,6 +154,10 @@ button { font: inherit; }
 
 .test-block { border: 2px solid var(--line); border-radius: var(--radius-lg); margin-top: 16px; overflow: hidden; }
 .test-block.on { border-color: var(--ink); }
+.test-block.blocked { opacity: .6; background: #f4f4f4; }
+.test-block.blocked .test-head { cursor: not-allowed; background: #f4f4f4; }
+.test-block.blocked .box { border-color: var(--line); }
+.t-conflict { padding: 0 16px 14px 54px; font-size: 13px; color: var(--ink-2); background: #f4f4f4; }
 .test-head { display: flex; align-items: center; gap: 14px; padding: 14px 16px; cursor: pointer; background: #fafafa; width: 100%; text-align: left; border: 0; color: inherit; }
 .test-head .box { width: 24px; height: 24px; border: 2px solid var(--ink-2); border-radius: 3px; display: grid; place-items: center; flex: none; font-size: 15px; color: transparent; }
 .test-block.on .box { background: var(--ink); border-color: var(--ink); color: #fff; }
@@ -297,6 +301,13 @@ button { font: inherit; }
 .date-chip:hover .arr { transform: translateX(3px); }
 .date-chip:active { transform: translateY(1px); }
 .date-chip:focus-visible { border-color: var(--accent); }
+
+/* Dias con reservas aun no abiertas ("Proximamente") */
+.date-chip.is-locked, .date-chip.is-locked:hover { background: rgba(255,255,255,.55); color: var(--muted); cursor: not-allowed; box-shadow: none; }
+.date-chip.is-locked .arr { font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; transform: none; }
+.day-card.is-locked, .day-card.is-locked:hover { cursor: not-allowed; opacity: .6; border-color: var(--line); background: #f4f4f4; }
+.day-card.is-locked .day-radio { visibility: hidden; }
+.day-info .lock-note { margin-top: 6px; display: inline-block; font: 700 11px var(--font-head); text-transform: uppercase; letter-spacing: .08em; color: var(--ink); background: #fff; border: 1px solid var(--line); padding: 3px 8px; border-radius: 2px; }
 
 /* Aviso de espera (comprobando disponibilidad / enviando) */
 .status { min-height: 0; margin: 14px 0 0; font-size: 14px; font-weight: 700; color: var(--ink-2); display: flex; align-items: center; gap: 10px; }

@@ -5,6 +5,6 @@
  *          guardan solo en el navegador de quien prueba y se muestra un aviso.
  */
 window.SCOTT_CONFIG = {
-  API_URL: "",
+  API_URL: "https://script.google.com/macros/s/AKfycby_CueYPLyc-Lc0W8W6uKEkr1s2zIcwCvqIWBhx33wGAs_IV26hognBthy6nq4BaCtAaQ/exec",
   WAIVER_VERSION: "v1-2027"
 };

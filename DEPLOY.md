@@ -53,3 +53,19 @@ Notas WhatsApp: guarda en caché la vista previa de cada enlace; para forzar la 
 - [ ] `tools/set_domain.sh` ejecutado y carpeta republicada.
 - [ ] Revisado el texto de «tratamiento de datos» (`index.html`, diálogo `#privacy-dialog`) con quien lleve la protección de datos.
 - [ ] Enlace probado en WhatsApp (vista previa con imagen).
+
+## Confirmación por email, cancelación y anti-abuso (v6)
+
+**Flujo de una reserva:** la web la guarda como `PENDIENTE` y retiene las bicis 30 min → el participante recibe un email con un enlace a `reserva.html` → pulsa «Confirmar mi reserva» (`CONFIRMADA`) o «Cancelar» (`CANCELADA`). Si no confirma a tiempo caduca (`EXPIRADA`) y la bici se libera sola. Cada confirmación o cancelación te llega por email (si queda cuota diaria).
+
+**Estados en la columna «Estado» de la hoja:** `PENDIENTE`, `CONFIRMADA`, `CANCELADA`, `EXPIRADA`. Las columnas «Token», «Caduca (ms)» y «Último cambio de estado» las gestiona el script; no las edites. Para cancelar a mano una reserva, escribe `CANCELADA` en «Estado» (libera el stock).
+
+**Ajustes** (arriba de `apps-script/Code.gs`): `HOLD_MINUTES` (30), `MAX_PENDING_PER_EMAIL` (3 pendientes a la vez por email), `MAX_NEW_HOLDS_PER_10MIN` (40 reservas nuevas cada 10 min, freno a oleadas), `MIN_FILL_SECONDS` (8), `MANAGE_URL` (si cambias de dominio, cámbialo aquí).
+
+**Anti-abuso incluido:** email verificado antes de confirmar; retención temporal; límite por email y global; campo trampa (honeypot) y tiempo mínimo; duplicados por documento; token secreto en cada enlace; confirmar/cancelar exige pulsar un botón (los analizadores de enlaces del correo no actúan solos).
+**No incluido todavía:** captcha (p. ej. Cloudflare Turnstile). Un atacante decidido aún podría retener bicis 30 min repetidamente; el captcha lo evita. Requiere una cuenta de Cloudflare y volver a autorizar el script (acceso a servicios externos).
+
+> Al cambiar `Code.gs`: pega el código en el editor de Apps Script (con tu email en `ORGANIZER_EMAIL` y el ID de la hoja en `SPREADSHEET_ID`) y publica una **versión nueva** de la implementación para mantener la URL.
+
+## Guía de tallas
+Los rangos de altura salen de las guías oficiales (`guia tallas spark rc.tiff` y `guia tallas addict gravel.tiff`), medidos sobre los gráficos; están en `tools/build_data.py` (`size_guide`). Si SCOTT actualiza la guía, cambia ahí los rangos y las imágenes de `assets/img/guides/` y ejecuta `python3 -I tools/build_data.py`.

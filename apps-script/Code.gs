@@ -10,6 +10,7 @@
 var ORGANIZER_EMAIL = 'CAMBIAR@tu-dominio.com';   // recibe copia de cada reserva
 var SENDER_NAME     = 'SCOTT Experience 2027';
 var SHEET_NAME      = 'Reservas';
+var SPREADSHEET_ID  = '';   // vacio = script creado desde Extensiones > Apps Script de la propia hoja; si el script es independiente, pon aqui el ID de la hoja
 var WAIVER_VERSION  = 'v1-2027';
 // ==================================
 
@@ -25,7 +26,7 @@ var HEADERS = ['Fecha registro', 'Referencia', 'Fecha test', 'Hora', 'Ciudad', '
   'Fecha/hora aceptacion', 'Tratamiento datos aceptado', 'Estado'];
 
 function getSheet_() {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ss = SPREADSHEET_ID ? SpreadsheetApp.openById(SPREADSHEET_ID) : SpreadsheetApp.getActiveSpreadsheet();
   var sh = ss.getSheetByName(SHEET_NAME);
   if (!sh) {
     sh = ss.insertSheet(SHEET_NAME);

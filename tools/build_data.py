@@ -143,7 +143,23 @@ def main():
         logo, bg = logos[s]
         maps = MAPS[s]
         day_list.append(OrderedDict([("date", d), ("weekday", w), ("city", c), ("store", s), ("logo", logo), ("logoBg", bg), ("mapUrl", maps)]))
-    data = OrderedDict([("bikes", bikes), ("sessions", sessions), ("days", day_list)])
+    # Guia de tallas oficial SCOTT (archivos "guia tallas spark rc.tiff" y "guia tallas addict gravel.tiff").
+    # Rangos de altura (cm) medidos sobre los pixeles de cada grafico: [desde, hasta]; None = sin limite en el grafico.
+    # Las tallas contiguas se solapan, igual que en el grafico oficial. Son rangos orientativos.
+    size_guide = OrderedDict([
+        ("mtb", OrderedDict([
+            ("label", "Spark RC"),
+            ("img", "assets/img/guides/spark-rc-tallas.png"),
+            ("ranges", OrderedDict([("S", [158, 173]), ("M", [168, 180]), ("L", [178, 193]), ("XL", [185, 198])])),
+        ])),
+        ("gravel", OrderedDict([
+            ("label", "Addict Gravel"),
+            ("img", "assets/img/guides/addict-gravel-tallas.png"),
+            ("ranges", OrderedDict([("XXS", [None, 162]), ("XS", [158, 167]), ("S", [163, 173]), ("M", [170, 178]),
+                                    ("L", [177, 187]), ("XL", [185, 197]), ("XXL", [193, None])])),
+        ])),
+    ])
+    data = OrderedDict([("bikes", bikes), ("sessions", sessions), ("days", day_list), ("sizeGuide", size_guide)])
     js = "/* GENERADO por tools/build_data.py - no editar a mano */\nwindow.SCOTT_DATA = " + json.dumps(data, ensure_ascii=False, indent=2) + ";\n"
     (ROOT / "js" / "data.js").write_text(js, encoding="utf-8")
 

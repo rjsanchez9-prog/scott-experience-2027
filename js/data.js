@@ -283,5 +283,63 @@ window.SCOTT_DATA = {
       "logoBg": "#ffffff",
       "mapUrl": "https://maps.app.goo.gl/7miXMEmDyBrKGWtb8"
     }
-  ]
+  ],
+  "sizeGuide": {
+    "mtb": {
+      "label": "Spark RC",
+      "img": "assets/img/guides/spark-rc-tallas.png",
+      "ranges": {
+        "S": [
+          158,
+          173
+        ],
+        "M": [
+          168,
+          180
+        ],
+        "L": [
+          178,
+          193
+        ],
+        "XL": [
+          185,
+          198
+        ]
+      }
+    },
+    "gravel": {
+      "label": "Addict Gravel",
+      "img": "assets/img/guides/addict-gravel-tallas.png",
+      "ranges": {
+        "XXS": [
+          null,
+          162
+        ],
+        "XS": [
+          158,
+          167
+        ],
+        "S": [
+          163,
+          173
+        ],
+        "M": [
+          170,
+          178
+        ],
+        "L": [
+          177,
+          187
+        ],
+        "XL": [
+          185,
+          197
+        ],
+        "XXL": [
+          193,
+          null
+        ]
+      }
+    }
+  }
 };

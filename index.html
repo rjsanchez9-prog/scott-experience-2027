@@ -27,7 +27,7 @@
   <meta name="twitter:description" content="Spark RC y Addict Gravel 2027. 11–15 dic · Algeciras · Málaga · Córdoba · Andújar.">
   <meta name="twitter:image" content="https://rjsanchez9-prog.github.io/scott-experience-2027/assets/img/og-scott-experience-2027.jpg">
 
-  <link rel="stylesheet" href="css/style.css?v=5">
+  <link rel="stylesheet" href="css/style.css?v=7">
 </head>
 <body>
   <div id="demo-banner" class="demo-banner" hidden>Modo demostración · las reservas no se envían a ningún sitio (falta configurar API_URL)</div>
@@ -81,7 +81,7 @@
           <li><span class="num">1</span><h3>Elige día y tienda</h3><p>Cinco jornadas en cuatro ciudades, con la tienda SCOTT de cada una.</p></li>
           <li><span class="num">2</span><h3>Elige tu bici</h3><p>MTB por la mañana, gravel a última hora. Modelo y talla, con stock real.</p></li>
           <li><span class="num">3</span><h3>Tus datos</h3><p>Datos de contacto y de emergencia para poder rodar con seguridad.</p></li>
-          <li><span class="num">4</span><h3>Lee y acepta el descargo</h3><p>Es obligatorio leer el documento completo para confirmar la reserva.</p></li>
+          <li><span class="num">4</span><h3>Acepta y confirma</h3><p>Lee el descargo completo y valida tu reserva con el enlace que te llega por email.</p></li>
         </ol>
       </div>
     </section>
@@ -126,6 +126,25 @@
           <div class="panel" data-panel="2" hidden>
             <h3>2 · Elige tu bici y talla</h3>
             <p class="panel-sub" id="day-summary"></p>
+
+            <!-- Guía de tallas: altura -> talla recomendada por SCOTT; guía oficial plegada -->
+            <section class="size-helper" id="size-helper" aria-labelledby="sh-title">
+              <div class="sh-top">
+                <div class="sh-text">
+                  <h4 id="sh-title">¿Qué talla necesito?</h4>
+                  <p>Escribe tu altura y marcamos la talla que recomienda SCOTT.</p>
+                </div>
+                <label class="sh-field"><span class="sr-only">Tu altura en centímetros</span>
+                  <input id="height-input" type="number" inputmode="numeric" min="120" max="230" step="1" placeholder="Ej. 178" autocomplete="off">
+                  <b aria-hidden="true">cm</b></label>
+              </div>
+              <div class="sh-result" id="size-result" role="status" aria-live="polite"></div>
+              <details class="sh-details">
+                <summary>Ver la guía oficial de tallas SCOTT</summary>
+                <div class="sh-guides" id="size-guides"></div>
+              </details>
+            </section>
+
             <div id="tests-box"></div>
           </div>
 
@@ -201,13 +220,15 @@
           <div class="panel" data-panel="5" hidden>
             <h3>5 · Revisa y confirma</h3>
             <div id="summary" class="summary"></div>
+            <div class="hp" aria-hidden="true"><label>No rellenar este campo<input type="text" id="hp-field" name="website" tabindex="-1" autocomplete="off"></label></div>
+            <p class="hint">Al confirmar te enviaremos un email con un enlace para <strong>validar tu reserva</strong>. La bici queda retenida 30 minutos para ti.</p>
             <p class="form-error" id="submit-error" role="alert" hidden></p>
           </div>
 
           <!-- Exito -->
           <div class="panel success" data-panel="done" hidden>
-            <div class="success-icon" aria-hidden="true">✓</div>
-            <h3>¡Reserva confirmada!</h3>
+            <div class="success-icon" id="done-icon" aria-hidden="true">✓</div>
+            <h3 id="done-title">¡Reserva confirmada!</h3>
             <p class="ref">Referencia <strong id="done-ref"></strong></p>
             <div id="done-summary" class="summary"></div>
             <p class="hint" id="done-note"></p>
@@ -241,6 +262,7 @@
             </ul></li>
           <li><b>Llega 30 minutos antes.</b> Preséntate en la tienda media hora antes del inicio de tu test.</li>
           <li><b>Duración.</b> Entre 1 h y 1 h 30 min de ruta al aire libre.</li>
+          <li><b>Confirma por email.</b> Tu reserva se valida con el enlace que te enviamos (30 minutos). Desde ese mismo enlace puedes cancelarla y liberar la bici.</li>
           <li><b>Lleva tu documento</b> de identidad (DNI/NIE/pasaporte).</li>
           <li><b>Solo mayores de 18 años.</b></li>
           <li><b>Horarios:</b> MTB 09:30–11:00 · Gravel 11:30–13:00 · y el sábado 12, MTB también de 15:00 a 16:30 (solo Spark RC).</li>
@@ -262,13 +284,14 @@
       <p><strong>Finalidad:</strong> gestionar tu reserva del test, contactar contigo si hay cambios y poder actuar en caso de accidente o emergencia, facilitando tus datos a los servicios de emergencia si fuera necesario.</p>
       <p><strong>Datos:</strong> identificación, fecha de nacimiento, contacto, contacto de emergencia y aceptación del descargo.</p>
       <p><strong>Destinatarios:</strong> la organización del test y la tienda en la que reserves. No se ceden a terceros salvo obligación legal o emergencia.</p>
+      <p><strong>Confirmación y cancelación:</strong> usamos tu correo para enviarte un enlace personal con el que validar o cancelar tu reserva. Las reservas sin confirmar caducan a los 30 minutos.</p>
       <p><strong>Derechos:</strong> puedes solicitar acceso, rectificación, supresión u oposición escribiendo a la organización.</p>
       <button class="btn" value="close">Entendido</button>
     </form>
   </dialog>
 
-  <script src="js/config.js?v=5"></script>
-  <script src="js/data.js?v=5"></script>
-  <script src="js/app.js?v=5"></script>
+  <script src="js/config.js?v=7"></script>
+  <script src="js/data.js?v=7"></script>
+  <script src="js/app.js?v=7"></script>
 </body>
 </html>

@@ -5,6 +5,7 @@
   var C = window.SCOTT_CONFIG || {};
   var DEMO = !C.API_URL;
   var DEMO_KEY = "scx2027_demo_bookings";
+  var T0 = Date.now();   // momento de apertura de la pagina (anti-bots: el servidor rechaza envios imposiblemente rapidos)
 
   function $(s, r) { return (r || document).querySelector(s); }
   function $$(s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); }
@@ -175,7 +176,53 @@
       (state.availabilityFailed ? '<br><span class="hint">No hemos podido comprobar el stock en este momento; se verificará al confirmar.</span>' : "") +
       (state.notice ? '<div class="form-error">' + esc(state.notice) + "</div>" : "");
     state.notice = "";
+    renderTestBlocks();
+    renderSizeHelper();
+  }
+  function renderTestBlocks() {
     $("#tests-box").innerHTML = sessionsOfDay(state.dayDate).map(function (s) { return testBlockHTML(s.id); }).join("");
+  }
+
+  /* ---------- Guia de tallas (altura -> talla recomendada por SCOTT) ---------- */
+  var GUIDE = D.sizeGuide || {};
+  var SIZE_ORDER = ["XXS", "XS", "S", "M", "L", "XL", "XXL"];
+  function fitSizes(type, h) {
+    var g = GUIDE[type]; if (!g || !h) return [];
+    return SIZE_ORDER.filter(function (sz) {
+      var r = g.ranges[sz]; if (!r) return false;
+      return (r[0] == null || h >= r[0]) && (r[1] == null || h <= r[1]);
+    });
+  }
+  function fleetSizes(type) {
+    var seen = {}; bikesOf(type).forEach(function (b) { Object.keys(b.sizes).forEach(function (sz) { seen[sz] = true; }); });
+    return SIZE_ORDER.filter(function (sz) { return seen[sz]; });
+  }
+  function guideBounds(type) {
+    var lo = null, hi = null; var g = GUIDE[type]; if (!g) return {};
+    Object.keys(g.ranges).forEach(function (sz) { var r = g.ranges[sz]; if (r[0] != null && (lo == null || r[0] < lo)) lo = r[0]; if (r[1] != null && (hi == null || r[1] > hi)) hi = r[1]; });
+    return { lo: lo, hi: hi };
+  }
+  function renderSizeHelper() {
+    var gbox = $("#size-guides");
+    if (!gbox.innerHTML) {
+      gbox.innerHTML = ["mtb", "gravel"].filter(function (t) { return GUIDE[t]; }).map(function (t) {
+        var g = GUIDE[t];
+        var alt = "Guía de tallas " + g.label + ": " + SIZE_ORDER.filter(function (sz) { return g.ranges[sz]; }).map(function (sz) {
+          var r = g.ranges[sz]; return sz + " " + (r[0] == null ? "hasta " + r[1] : (r[1] == null ? "desde " + r[0] : r[0] + " a " + r[1])) + " cm";
+        }).join(", ");
+        return '<figure><figcaption>' + esc(g.label) + '</figcaption><img loading="lazy" src="' + esc(g.img) + '" alt="' + esc(alt) + '"></figure>';
+      }).join("");
+    }
+    var res = $("#size-result"), h = state.height;
+    if (!h) { res.innerHTML = ""; return; }
+    res.innerHTML = ["mtb", "gravel"].filter(function (t) { return GUIDE[t]; }).map(function (t) {
+      var fit = fitSizes(t, h), fleet = fleetSizes(t), ok = fit.filter(function (sz) { return fleet.indexOf(sz) >= 0; });
+      var label = '<span class="sr-type">' + esc(GUIDE[t].label) + "</span>", body;
+      if (ok.length) body = '<span class="sr-sizes">' + ok.map(function (sz) { return "<b>" + sz + "</b>"; }).join(" o ") + "</span>";
+      else if (fit.length) body = '<span class="sr-none">Tu talla (' + fit.join(" / ") + ") no está en este test</span>";
+      else { var bd = guideBounds(t); body = '<span class="sr-none">' + (bd.lo != null && h < bd.lo ? "Por debajo del rango de la guía (desde " + bd.lo + " cm)" : "Por encima del rango de la guía (hasta " + bd.hi + " cm)") + "</span>"; }
+      return '<div class="sr-item">' + label + body + "</div>";
+    }).join("") + '<p class="sr-note">Rangos orientativos de la guía oficial SCOTT. Si estás entre dos tallas, la guía las recomienda ambas.</p>';
   }
   function testBlockHTML(sid) {
     var s = sessionById(sid), type = s.type;
@@ -191,8 +238,9 @@
         var sizes = Object.keys(b.sizes).map(function (sz) {
           var r = remaining(s.id, b, sz);
           var pressed = selected && pick.size === sz;
-          return '<button type="button" class="size-btn" data-session="' + sid + '" data-bike="' + b.id + '" data-size="' + sz + '" aria-pressed="' + pressed + '"' + (r === 0 ? " disabled" : "") +
-            ' aria-label="Talla ' + sz + ", " + (r === 0 ? "agotada" : r + (r === 1 ? " unidad libre" : " unidades libres")) + '">' + sz + "<small>" + (r === 0 ? "agotada" : "quedan " + r) + "</small></button>";
+          var fit = !!state.height && fitSizes(type, state.height).indexOf(sz) >= 0;   // talla recomendada para la altura indicada
+          return '<button type="button" class="size-btn' + (fit ? " fit" : "") + '" data-session="' + sid + '" data-bike="' + b.id + '" data-size="' + sz + '" aria-pressed="' + pressed + '"' + (r === 0 ? " disabled" : "") +
+            ' aria-label="Talla ' + sz + (fit ? ", recomendada para tu altura" : "") + ", " + (r === 0 ? "agotada" : r + (r === 1 ? " unidad libre" : " unidades libres")) + '">' + (fit ? '<em class="fit-tag">Para ti</em>' : "") + sz + "<small>" + (r === 0 ? "agotada" : "quedan " + r) + "</small></button>";
         }).join("");
         return '<div class="pick-card' + (selected ? " selected" : "") + '"><div class="photo"><img loading="lazy" src="' + esc(b.img) + '" alt="' + esc(bikeName(b) + " " + b.color) + '"></div>' +
           '<div class="pbody"><div class="pname">' + esc(bikeName(b)) + '</div><div class="pcolor">' + esc(b.color) + " · pedales " + esc(b.pedal) + '</div><div class="size-chips">' + sizes + "</div></div></div>";
@@ -298,13 +346,14 @@
     if (!state.requestId || state.requestFp !== fp) { state.requestId = newRequestId(); state.requestFp = fp; }
     var payload = {
       requestId: state.requestId, bookings: bookings, person: state.person, privacy: true,
+      hp: $("#hp-field").value, elapsedMs: Date.now() - T0,   // anti-bots: campo trampa y tiempo desde que se abrio la pagina
       waiver: { accepted: true, version: C.WAIVER_VERSION, signature: $("#waiver-signature").value.trim(), acceptedAt: new Date().toISOString() }
     };
     state.submitting = true; $("#btn-next").textContent = "Enviando…"; setStatus("Enviando tu reserva… puede tardar unos segundos. No cierres la página.", true); updateNext();
     var done = DEMO ? demoSubmit(payload) : fetch(C.API_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(payload) }).then(function (r) { return r.json(); });
     done.then(function (res) {
       state.submitting = false; $("#btn-next").textContent = "Confirmar reserva"; setStatus("", false);
-      if (res && res.ok) return success(res.ref);
+      if (res && res.ok) return success(res);
       handleError(res || { error: "SERVER" });
     }).catch(function () {
       state.submitting = false; $("#btn-next").textContent = "Confirmar reserva"; setStatus("", false); updateNext();
@@ -340,19 +389,39 @@
       UNDERAGE: "Solo pueden participar personas mayores de 18 años.",
       DUPLICATE: res.detail || "Ya existe una reserva con este documento de identidad para ese test.",
       WAIVER: "No se ha podido validar la aceptación del descargo. Revisa la firma (debe coincidir con tu nombre y apellidos).",
-      INVALID: res.detail || "Algún dato no es válido. Revísalos e inténtalo de nuevo."
+      INVALID: res.detail || "Algún dato no es válido. Revísalos e inténtalo de nuevo.",
+      TOO_FAST: res.detail, TOO_MANY: res.detail, BUSY: res.detail, MAIL: res.detail,
+      EXPIRED: res.detail
     };
+    if (res.error === "EXPIRED") { state.requestId = ""; state.requestFp = ""; }   // la reserva anterior caduco: el siguiente intento es nuevo
     showSubmitError(map[res.error] || "Ha ocurrido un error al guardar la reserva. Inténtalo de nuevo en unos minutos.");
   }
 
-  function success(ref) {
+  function success(res) {
+    var ref = res.ref;
     $("#done-ref").textContent = ref;
     $("#done-summary").innerHTML = summaryHTML(null, false);
-    $("#done-note").textContent = DEMO ? "Modo demostración: esta reserva solo existe en este navegador." :
-      "Te hemos enviado la confirmación a " + state.person.email + ". Llega 30 minutos antes del inicio de tu test. Recuerda llevar casco (obligatorio) y tu documento de identidad.";
-    $("#done-actions").innerHTML = '<button type="button" class="btn" id="dl-ics">Añadir al calendario</button>';
-    $("#dl-ics").addEventListener("click", function () { downloadICS(ref); });
     state.lastRef = ref; state.submitting = false;
+    if (res.pending) {
+      // Reserva PENDIENTE: la bici queda retenida hasta que el participante valida el enlace del email
+      var until = new Date(res.expiresAt).toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Madrid" });
+      $("#done-icon").textContent = "✉"; $("#done-title").textContent = "Último paso: confirma tu reserva";
+      $("#done-note").innerHTML = "Te hemos enviado un email a <strong>" + esc(state.person.email) + "</strong>. Abre el enlace y pulsa «Confirmar mi reserva» <strong>antes de las " + esc(until) + "</strong>; hasta entonces tu bici queda retenida. Si no lo ves, mira en spam o promociones.";
+      $("#done-actions").innerHTML = '<button type="button" class="btn btn-ghost" id="resend-btn">Reenviar el email</button>';
+      $("#resend-btn").addEventListener("click", function () {
+        var btn = this; btn.disabled = true; setStatus("Reenviando el email…", true);
+        fetch(C.API_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ action: "resend", ref: ref }) })
+          .then(function (r) { return r.json(); })
+          .then(function (j) { setStatus(j.ok ? "Email reenviado. Revisa tu bandeja de entrada y el spam." : (j.detail || "No hemos podido reenviarlo."), false); btn.disabled = !!(j && j.error === "RATE"); })
+          .catch(function () { setStatus("No hemos podido reenviarlo. Inténtalo de nuevo.", false); btn.disabled = false; });
+      });
+    } else {
+      $("#done-icon").textContent = "✓"; $("#done-title").textContent = "¡Reserva confirmada!";
+      $("#done-note").textContent = DEMO ? "Modo demostración: esta reserva solo existe en este navegador." :
+        "Llega 30 minutos antes del inicio de tu test. Recuerda llevar casco (obligatorio) y tu documento de identidad.";
+      $("#done-actions").innerHTML = '<button type="button" class="btn" id="dl-ics">Añadir al calendario</button>';
+      $("#dl-ics").addEventListener("click", function () { downloadICS(ref); });
+    }
     go("done");
     loadAvailability().then(function () { renderTestsIfVisible(); });
   }
@@ -387,6 +456,7 @@
 
   function resetState() {
     state.requestId = ""; state.requestFp = "";
+    state.height = null; $("#height-input").value = ""; $("#size-result").innerHTML = "";
     state.dayDate = null; state.enabled = {}; state.picks = {};
     state.person = null; state.waiverRead = false; state.notice = "";
     $("#kyc-form").reset(); $("#waiver-check").checked = false; $("#privacy-check").checked = false; $("#waiver-signature").value = "";
@@ -433,6 +503,14 @@
       }
     });
 
+    // Guia de tallas: al escribir la altura se marca la talla recomendada en las bicis
+    $("#height-input").addEventListener("input", function (e) {
+      var v = parseInt(e.target.value, 10);
+      state.height = (v >= 120 && v <= 230) ? v : null;
+      renderSizeHelper();
+      renderTestBlocks();
+    });
+
     $("#btn-back").addEventListener("click", function () { if (state.step > 1) go(state.step - 1); });
     $("#btn-next").addEventListener("click", function () {
       var s = state.step;
@@ -477,7 +555,12 @@
       if (state.step === 3 || state.step === 4 || state.step === 5) { e.preventDefault(); e.returnValue = ""; }
     });
 
-    loadAvailability().then(function () { renderGallery(); go(1, { silent: true }); });
+    // El paso 1 se pinta de inmediato; el stock se refresca cuando llega (sin devolver al usuario al paso 1 si ya avanzo)
+    renderGallery(); go(1, { silent: true });
+    loadAvailability().then(function () {
+      renderGallery();
+      if (state.step === 2) { renderTestBlocks(); }
+    });
   }
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init); else init();

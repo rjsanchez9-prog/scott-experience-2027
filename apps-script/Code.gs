@@ -41,6 +41,10 @@ var REQUIRE_EMAIL_CONFIRMATION = false;
 // Clave = nombre de tienda tal y como aparece en SESSIONS. Se rellena SOLO en la copia desplegada en Google
 // (los correos de terceros no se publican en el repositorio).
 var STORE_COORDINATORS = {};
+
+// Interruptor de los avisos a coordinadores. Mientras la version no sea definitiva debe estar en false: las reservas y
+// cancelaciones (reales o de prueba) NO se copian a los coordinadores. Poner true solo cuando se de la version por cerrada.
+var NOTIFY_COORDINATORS = false;
 // ==================================
 
 // <STOCK-BEGIN> generado por tools/build_data.py
@@ -225,7 +229,7 @@ function teamRecipients_(items) {
   var out = [], seen = {};
   function add(e) { e = String(e || '').trim(); if (e && e.indexOf('CAMBIAR') === -1 && !seen[e.toLowerCase()]) { seen[e.toLowerCase()] = true; out.push(e); } }
   add(ORGANIZER_EMAIL);
-  for (var i = 0; i < items.length; i++) add(STORE_COORDINATORS[items[i].store]);
+  if (NOTIFY_COORDINATORS) for (var i = 0; i < items.length; i++) add(STORE_COORDINATORS[items[i].store]);
   return out;
 }
 

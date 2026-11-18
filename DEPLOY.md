@@ -3,6 +3,13 @@
 La carpeta `landing-scott-experience-2027/` es una web estática (sin instalación ni build).
 Se publica en 3 pasos: **(1)** crear la hoja y el backend de reservas, **(2)** publicar la carpeta en un hosting con enlace público, **(3)** fijar el dominio para la vista previa de WhatsApp.
 
+## Publicado en GitHub Pages
+
+- Repositorio: https://github.com/rjsanchez9-prog/scott-experience-2027
+- Enlace público: https://rjsanchez9-prog.github.io/scott-experience-2027/
+- El dominio ya está fijado en las etiquetas de WhatsApp. Para actualizar la web: edita los archivos, `git commit` y `git push` (Pages se republica solo en ~1 minuto).
+- Lo único que falta para recibir reservas reales es el **paso 1** (Apps Script + `API_URL` en `js/config.js`). Los pasos 2 y 3 de abajo son la alternativa Netlify y ya no son necesarios.
+
 ## 1 · Backend de reservas (Google Sheets + email)
 
 1. Crea una hoja de cálculo nueva en Google Sheets, por ejemplo «Reservas SCOTT Experience 2027». Solo debe tener acceso quien gestione el test (contiene DNI y datos de emergencia).

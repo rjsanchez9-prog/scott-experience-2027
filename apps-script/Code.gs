@@ -628,7 +628,7 @@ function sendReminders() {
 
 // Prueba manual (ejecutar desde el editor, solo en la copia desplegada): crea una reserva ficticia a nombre de ORGANIZER_EMAIL,
 // comprueba que se envia el recordatorio solo a esa direccion (sin avisar a coordinadores) y borra la fila de prueba.
-function selfTestReminder_() {
+function pruebaRecordatorio() {
   var sh = getSheet_();
   var ref = 'SCX-TEST-' + Utilities.formatDate(new Date(), 'Europe/Madrid', 'HHmmss');
   var bikeId = 'mtb-team-issue-carbon-black';

@@ -44,7 +44,7 @@ var STORE_COORDINATORS = {};
 
 // Interruptor de los avisos a coordinadores. Mientras la version no sea definitiva debe estar en false: las reservas y
 // cancelaciones (reales o de prueba) NO se copian a los coordinadores. Poner true solo cuando se de la version por cerrada.
-var NOTIFY_COORDINATORS = false;
+var NOTIFY_COORDINATORS = true;
 // ==================================
 
 // <STOCK-BEGIN> generado por tools/build_data.py
@@ -252,11 +252,23 @@ function coordPersonText_(r) {
   return 'Participante: ' + r[9] + ' ' + r[10] + '\nTelefono: ' + r[13] + '\nEmail: ' + r[COL_EMAIL] + '\nPeso: ' + r[COL_PESO] + ' kg' + s;
 }
 
+// Una reserva es de PRUEBA (no real) si el nombre o apellidos contienen "prueba" o "test", o si el email es el del organizador.
+// Los avisos al equipo (organizador y coordinadores) la marcan de forma muy visible para que nadie prepare bicis por una reserva ficticia.
+function isTestBooking_(row) {
+  var n = String(row[9] || '') + ' ' + String(row[10] || '');
+  if (/\b(prueba|test)\b/i.test(n)) return true;
+  return String(row[COL_EMAIL] || '').toLowerCase() === String(ORGANIZER_EMAIL).toLowerCase();
+}
+
 // Aviso de reserva nueva o cancelada al organizador y a los coordinadores de las tiendas implicadas
 function teamNotice_(kind, ref, row, items) {
   var who = row[9] + ' ' + row[10];
   var head = kind === 'CANCELADA' ? 'Reserva CANCELADA (ref. ' + ref + '). Las bicis quedan libres.' : 'Nueva reserva CONFIRMADA (ref. ' + ref + ')';
   var subject = (kind === 'CANCELADA' ? 'Reserva CANCELADA ' : 'Nueva reserva ') + ref + ' · ' + who + ' · ' + items[0].store;
+  if (isTestBooking_(row)) {
+    subject = '[PRUEBA - NO ES UNA RESERVA REAL] ' + subject;
+    head = '*** PRUEBA - NO ES UNA RESERVA REAL. IGNORAR: no hay que preparar ninguna bici. Se borrara. ***\n\n' + head;
+  }
   notifyTeam_(subject, head + '\n\n' + linesOf_(items) + '\n\n' + personText_(row), head + '\n\n' + linesOf_(items) + '\n\n' + coordPersonText_(row), items);
 }
 

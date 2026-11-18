@@ -538,6 +538,16 @@
     $("#open-privacy").addEventListener("click", function () { var d = $("#privacy-dialog"); if (d.showModal) d.showModal(); else d.setAttribute("open", ""); });
     $("#new-booking").addEventListener("click", resetAll);
 
+    // Logo SCOTT de la cabecera: boton "ir al inicio" (la cabecera es fija, asi que un ancla #top no llegaba arriba)
+    $$(".brand").forEach(function (brand) {
+      brand.addEventListener("click", function (e) {
+        e.preventDefault();
+        var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        window.scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" });
+        try { history.replaceState(history.state, "", location.pathname + location.search); } catch (x) {}   // sin "#top" en la URL
+      });
+    });
+
     // Chips de fecha/ciudad de la cabecera: botones que llevan directo a reservar ese dia y tienda
     $$(".date-chip").forEach(function (chip) {
       chip.addEventListener("click", function () { jumpToDay(chip.getAttribute("data-date")); });

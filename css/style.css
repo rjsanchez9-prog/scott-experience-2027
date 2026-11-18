@@ -362,3 +362,9 @@ button { font: inherit; }
 .m-banner[hidden] { display: none; }
 #m-summary { margin-top: 16px; }
 .m-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
+
+/* Logo = boton "ir al inicio" */
+.brand { display: inline-flex; align-items: center; min-height: 44px; padding: 0 4px; margin-left: -4px; border-radius: 4px; cursor: pointer; transition: opacity .15s; }
+.brand:hover { opacity: .65; }
+.brand:active { opacity: .5; }
+.brand:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }

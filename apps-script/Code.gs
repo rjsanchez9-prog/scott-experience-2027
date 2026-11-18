@@ -25,6 +25,16 @@ var HOLD_MINUTES            = 30;   // tiempo que se retiene la bici hasta confi
 var MIN_FILL_SECONDS        = 8;    // una persona tarda mas que esto en rellenar el formulario (anti-bots)
 var MAX_PENDING_PER_EMAIL   = 3;    // reservas pendientes de confirmar a la vez por email
 var MAX_NEW_HOLDS_PER_10MIN = 40;   // tope global de reservas nuevas cada 10 min (freno a oleadas de bots)
+var MAX_ACTIVE_PER_EMAIL    = 6;    // reservas confirmadas a la vez por email (una pareja o familia puede compartir correo)
+
+// false: la reserva queda CONFIRMADA nada mas enviarla y el participante recibe UN solo email (confirmacion, con enlace para cancelar).
+// true : la reserva queda PENDIENTE y el participante debe validar el enlace del email antes de HOLD_MINUTES (mas proteccion anti-bots).
+var REQUIRE_EMAIL_CONFIRMATION = false;
+
+// Coordinador de cada tienda: recibe copia de las reservas (y cancelaciones) de sus tests.
+// Clave = nombre de tienda tal y como aparece en SESSIONS. Se rellena SOLO en la copia desplegada en Google
+// (los correos de terceros no se publican en el repositorio).
+var STORE_COORDINATORS = {};
 // ==================================
 
 // <STOCK-BEGIN> generado por tools/build_data.py
@@ -36,16 +46,19 @@ var SESSIONS = {"2026-12-11_algeciras_mtb_0930": {"type": "mtb", "date": "2026-1
 var HEADERS = ['Fecha registro', 'Referencia', 'Fecha test', 'Hora', 'Ciudad', 'Tienda', 'Test', 'Modelo',
   'Talla', 'Nombre', 'Apellidos', 'DNI/NIE/Pasaporte', 'Fecha nacimiento', 'Telefono', 'Email',
   'Contacto emergencia', 'Telefono emergencia', 'Descargo aceptado', 'Version descargo', 'Firma (nombre)',
-  'Fecha/hora aceptacion', 'Tratamiento datos aceptado', 'Estado', 'Token', 'Caduca (ms)', 'Ultimo cambio de estado'];
-var COL_REF = 1, COL_EMAIL = 14, COL_DOC = 11, COL_ESTADO = 22, COL_TOKEN = 23, COL_CADUCA = 24;   // indices 0-based en la fila
+  'Fecha/hora aceptacion', 'Tratamiento datos aceptado', 'Estado', 'Token', 'Caduca (ms)', 'Ultimo cambio de estado',
+  'Peso (kg)', 'Altura sillin (cm)'];
+var COL_REF = 1, COL_EMAIL = 14, COL_DOC = 11, COL_ESTADO = 22, COL_TOKEN = 23, COL_CADUCA = 24, COL_PESO = 26, COL_SILLIN = 27;   // indices 0-based en la fila
 
 var _sheet = null;
 function getSheet_() {
   if (_sheet) return _sheet;
   var ss = SPREADSHEET_ID ? SpreadsheetApp.openById(SPREADSHEET_ID) : SpreadsheetApp.getActiveSpreadsheet();
   var sh = ss.getSheetByName(SHEET_NAME);
+  if (sh && sh.getMaxColumns() < HEADERS.length) sh.insertColumnsAfter(sh.getMaxColumns(), HEADERS.length - sh.getMaxColumns());
   if (!sh) {
     sh = ss.insertSheet(SHEET_NAME);
+    if (sh.getMaxColumns() < HEADERS.length) sh.insertColumnsAfter(sh.getMaxColumns(), HEADERS.length - sh.getMaxColumns());
     // Todo como texto: evita que Sheets convierta "2026-12-11" en fecha y rompa el control de stock
     sh.getRange(1, 1, sh.getMaxRows(), HEADERS.length).setNumberFormat('@');
     sh.appendRow(HEADERS);
@@ -191,17 +204,55 @@ function sendVerification_(email, nombre, ref, token, expMs, items) {
   MailApp.sendEmail({ to: email, subject: 'Confirma tu reserva · SCOTT Experience 2027 · ' + ref, body: body, name: SENDER_NAME, replyTo: ORGANIZER_EMAIL });
 }
 
-// Aviso al organizador: solo si queda cuota diaria de sobra (la confirmacion al participante tiene prioridad)
-function notifyOrganizer_(subject, text) {
-  try {
-    if (ORGANIZER_EMAIL && ORGANIZER_EMAIL.indexOf('CAMBIAR') === -1 && MailApp.getRemainingDailyQuota() >= 10) {
-      MailApp.sendEmail({ to: ORGANIZER_EMAIL, subject: subject, body: text, name: SENDER_NAME });
-    }
-  } catch (x) { /* el aviso es secundario */ }
+// Email unico de confirmacion al participante (modo REQUIRE_EMAIL_CONFIRMATION = false): detalle + enlace para cancelar
+function sendConfirmation_(email, nombre, ref, token, items) {
+  var body = 'Hola ' + nombre + ',\n\nTu reserva para el SCOTT Experience 2027 esta CONFIRMADA (ref. ' + ref + ').\n\n' + linesOf_(items) +
+    '\n\nDescargo de responsabilidad aceptado (' + WAIVER_VERSION + '): ' + WAIVER_URL +
+    '\n\nRecuerda: llega 30 minutos antes del inicio de tu test. El test dura entre 1 h y 1 h 30 min. El casco es obligatorio y sin el no podras participar. Lleva tu DNI/NIE/pasaporte.' +
+    '\n\nSi no puedes venir, cancela tu reserva con este enlace para liberar la bicicleta a otra persona:\n' + manageLink_(ref, token) +
+    '\n\nNos vemos en la ruta,\n' + SENDER_NAME;
+  MailApp.sendEmail({ to: email, subject: 'Reserva confirmada · SCOTT Experience 2027 · ' + ref, body: body, name: SENDER_NAME, replyTo: ORGANIZER_EMAIL });
+}
+
+// Direcciones que reciben copia: el organizador y el coordinador de cada tienda implicada (sin repetir)
+function teamRecipients_(items) {
+  var out = [], seen = {};
+  function add(e) { e = String(e || '').trim(); if (e && e.indexOf('CAMBIAR') === -1 && !seen[e.toLowerCase()]) { seen[e.toLowerCase()] = true; out.push(e); } }
+  add(ORGANIZER_EMAIL);
+  for (var i = 0; i < items.length; i++) add(STORE_COORDINATORS[items[i].store]);
+  return out;
+}
+
+// Avisos al organizador y a los coordinadores de tienda. Solo si queda cuota diaria de sobra: la confirmacion al participante tiene prioridad.
+// El coordinador recibe datos de contacto y de ajuste de la bici; no el DNI ni la fecha de nacimiento.
+function notifyTeam_(subject, orgText, coordText, items) {
+  var to = teamRecipients_(items);
+  for (var i = 0; i < to.length; i++) {
+    try {
+      if (MailApp.getRemainingDailyQuota() < 5) return;
+      var isOrg = String(to[i]).toLowerCase() === String(ORGANIZER_EMAIL).toLowerCase();
+      MailApp.sendEmail({ to: to[i], subject: subject, body: isOrg ? orgText : coordText, name: SENDER_NAME, replyTo: ORGANIZER_EMAIL });
+    } catch (x) { /* el aviso es secundario */ }
+  }
+}
+
+// Datos del participante para el coordinador de la tienda (control de reservas y preparacion de bicis)
+function coordPersonText_(r) {
+  var s = r[COL_SILLIN] !== '' && r[COL_SILLIN] != null ? ' · sillin ' + r[COL_SILLIN] + ' cm' : '';
+  return 'Participante: ' + r[9] + ' ' + r[10] + '\nTelefono: ' + r[13] + '\nEmail: ' + r[COL_EMAIL] + '\nPeso: ' + r[COL_PESO] + ' kg' + s;
+}
+
+// Aviso de reserva nueva o cancelada al organizador y a los coordinadores de las tiendas implicadas
+function teamNotice_(kind, ref, row, items) {
+  var who = row[9] + ' ' + row[10];
+  var head = kind === 'CANCELADA' ? 'Reserva CANCELADA (ref. ' + ref + '). Las bicis quedan libres.' : 'Nueva reserva CONFIRMADA (ref. ' + ref + ')';
+  var subject = (kind === 'CANCELADA' ? 'Reserva CANCELADA ' : 'Nueva reserva ') + ref + ' · ' + who + ' · ' + items[0].store;
+  notifyTeam_(subject, head + '\n\n' + linesOf_(items) + '\n\n' + personText_(row), head + '\n\n' + linesOf_(items) + '\n\n' + coordPersonText_(row), items);
 }
 
 function personText_(r) {
-  return String(r[9]) + ' ' + String(r[10]) + '\nTel: ' + r[13] + '\nEmail: ' + r[COL_EMAIL] + '\nEmergencia: ' + r[15] + ' ' + r[16];
+  var s = r[COL_SILLIN] !== '' && r[COL_SILLIN] != null ? '\nAltura de sillin: ' + r[COL_SILLIN] + ' cm' : '';
+  return String(r[9]) + ' ' + String(r[10]) + '\nTel: ' + r[13] + '\nEmail: ' + r[COL_EMAIL] + '\nPeso: ' + r[COL_PESO] + ' kg' + s + '\nEmergencia: ' + r[15] + ' ' + r[16];
 }
 
 // GET
@@ -297,10 +348,19 @@ function create_(body) {
   }
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(clean_(p.email))) return json_({ ok: false, error: 'INVALID', detail: 'Email no valido.' });
   if (!isAdult_(clean_(p.nacimiento))) return json_({ ok: false, error: 'UNDERAGE', detail: 'Solo mayores de 18 anos.' });
-  if (w.accepted !== true || w.version !== WAIVER_VERSION) return json_({ ok: false, error: 'WAIVER', detail: 'Debes aceptar el descargo de responsabilidad.' });
-  var fullName = fold_(clean_(p.nombre) + ' ' + clean_(p.apellidos));
-  if (fold_(clean_(w.signature)) !== fullName) return json_({ ok: false, error: 'WAIVER', detail: 'La firma debe coincidir con tu nombre y apellidos.' });
+  // Descargo: basta con marcar las casillas de lectura y de aceptacion (ya no se pide firmar con el nombre)
+  if (w.accepted !== true || w.read !== true || w.version !== WAIVER_VERSION) return json_({ ok: false, error: 'WAIVER', detail: 'Debes marcar que has leido el descargo de responsabilidad y que lo aceptas.' });
   if (body.privacy !== true) return json_({ ok: false, error: 'INVALID', detail: 'Debes aceptar el tratamiento de datos.' });
+  // Peso obligatorio (kg); altura de sillin opcional (cm)
+  var peso = Math.round(Number(String(p.peso == null ? '' : p.peso).replace(',', '.')) * 10) / 10;
+  if (!isFinite(peso) || peso < 30 || peso > 250) return json_({ ok: false, error: 'INVALID', detail: 'Indica tu peso en kg (entre 30 y 250).' });
+  var sillinRaw = String(p.sillin == null ? '' : p.sillin).replace(',', '.').replace(/^\s+|\s+$/g, '');
+  var sillin = '';
+  if (sillinRaw !== '') {
+    var sv = Math.round(Number(sillinRaw) * 10) / 10;
+    if (!isFinite(sv) || sv < 50 || sv > 100) return json_({ ok: false, error: 'INVALID', detail: 'La altura de sillin debe estar entre 50 y 100 cm (o dejala en blanco).' });
+    sillin = sv;
+  }
 
   var booked = countBooked_(rows, nowMs, '');
   var email = clean_(p.email).toLowerCase();
@@ -308,16 +368,20 @@ function create_(body) {
   // Un mismo documento no puede repetir sesion; mismo dia: maximo un test de cada tipo (el email puede compartirse)
   var docK = docKey_(clean_(p.documento, 30));
   var existing = {};
-  var pendingRefs = {}, pendingCount = 0;
+  var pendingRefs = {}, pendingCount = 0, activeRefs = {}, activeCount = 0;
   for (var k = 0; k < rows.length; k++) {
     var r = rows[k].r;
     if (!rowActive_(r, nowMs)) continue;
     var dk = docKey_(r[COL_DOC]);
     existing[dk + '|' + sid_(r[2], r[4], r[6], r[3])] = true;
     existing[dk + '|day|' + txt_(r[2]) + '|' + r[6]] = true;   // mismo dia y tipo
-    if (String(r[COL_ESTADO]) === 'PENDIENTE' && String(r[COL_EMAIL]).toLowerCase() === email && !pendingRefs[r[COL_REF]]) { pendingRefs[r[COL_REF]] = true; pendingCount++; }
+    if (String(r[COL_EMAIL]).toLowerCase() === email) {
+      if (!activeRefs[r[COL_REF]]) { activeRefs[r[COL_REF]] = true; activeCount++; }
+      if (String(r[COL_ESTADO]) === 'PENDIENTE' && !pendingRefs[r[COL_REF]]) { pendingRefs[r[COL_REF]] = true; pendingCount++; }
+    }
   }
   if (pendingCount >= MAX_PENDING_PER_EMAIL) return json_({ ok: false, error: 'TOO_MANY', detail: 'Ya tienes reservas pendientes de confirmar con este email. Revisa tu correo o espera unos minutos a que caduquen.' });
+  if (activeCount >= MAX_ACTIVE_PER_EMAIL) return json_({ ok: false, error: 'TOO_MANY', detail: 'Este email ya tiene el maximo de reservas activas. Si necesitas mas, contacta con la organizacion.' });
 
   var seen = {};
   for (var j = 0; j < bookings.length; j++) {
@@ -339,9 +403,11 @@ function create_(body) {
     }
   }
 
-  if (MailApp.getRemainingDailyQuota() < 1) return json_({ ok: false, error: 'MAIL', detail: 'Ahora mismo no podemos enviar el email de confirmacion. Intentalo mas tarde.' });
+  // Solo en modo "validar por email" es imprescindible poder enviar el correo; en modo directo la reserva se guarda igualmente
+  if (REQUIRE_EMAIL_CONFIRMATION && MailApp.getRemainingDailyQuota() < 1) return json_({ ok: false, error: 'MAIL', detail: 'Ahora mismo no podemos enviar el email de confirmacion. Intentalo mas tarde.' });
 
-  // --- Guardar como PENDIENTE (retiene el stock HOLD_MINUTES minutos) ---
+  // --- Guardar: CONFIRMADA (modo directo) o PENDIENTE reteniendo el stock HOLD_MINUTES minutos ---
+  var estado = REQUIRE_EMAIL_CONFIRMATION ? 'PENDIENTE' : 'CONFIRMADA';
   var ref = 'SCX-' + Utilities.formatDate(new Date(), 'Europe/Madrid', 'MMdd') + '-' + (requestId || Math.random().toString(36).slice(2, 8).toUpperCase());
   var token = Utilities.getUuid().replace(/-/g, '');
   var expMs = nowMs + HOLD_MINUTES * 60000;
@@ -355,20 +421,36 @@ function create_(body) {
     sh.appendRow([now, ref, se.date, se.start + '-' + se.end, se.city, se.store, se.type, bi.label, bk.size,
       safe_(clean_(p.nombre)), safe_(clean_(p.apellidos)), safe_(clean_(p.documento, 30)), clean_(p.nacimiento, 10),
       safe_(clean_(p.telefono, 30)), email, safe_(clean_(p.emergenciaNombre)), safe_(clean_(p.emergenciaTelefono, 30)),
-      'SI', WAIVER_VERSION, safe_(clean_(w.signature)), acceptedAt, 'SI', 'PENDIENTE', token, String(expMs), now]);
+      'SI', WAIVER_VERSION, 'Casillas de lectura y aceptacion (sin firma)', acceptedAt, 'SI', estado, token, REQUIRE_EMAIL_CONFIRMATION ? String(expMs) : '', now,
+      peso, sillin]);
   });
   SpreadsheetApp.flush();
 
-  // --- Email de confirmacion: si no se puede enviar, se deshace la reserva ---
   var mine = rowsOfRef_(allRows_(sh), ref);
-  try {
-    sendVerification_(email, clean_(p.nombre), ref, token, expMs, itemsOf_(mine));
-  } catch (mailErr) {
-    for (var m = 0; m < mine.length; m++) setState_(sh, mine[m].n, 'EXPIRADA', null);
-    return json_({ ok: false, error: 'MAIL', detail: 'No hemos podido enviar el email de confirmacion. Comprueba la direccion o intentalo mas tarde.' });
+  var items = itemsOf_(mine);
+
+  if (REQUIRE_EMAIL_CONFIRMATION) {
+    // Modo "validar por email": si no se puede enviar el correo, se deshace la reserva
+    try {
+      sendVerification_(email, clean_(p.nombre), ref, token, expMs, items);
+    } catch (mailErr) {
+      for (var m = 0; m < mine.length; m++) setState_(sh, mine[m].n, 'EXPIRADA', null);
+      return json_({ ok: false, error: 'MAIL', detail: 'No hemos podido enviar el email de confirmacion. Comprueba la direccion o intentalo mas tarde.' });
+    }
+    cache.put(holdKey, String(Number(cache.get(holdKey) || 0) + 1), 700);
+    return json_({ ok: true, ref: ref, pending: true, expiresAt: expMs });
   }
+
+  // Modo directo: reserva CONFIRMADA, UN solo email al participante, y aviso al organizador y a los coordinadores de las tiendas
+  var emailSent = true;
+  try {
+    sendConfirmation_(email, clean_(p.nombre), ref, token, items);
+  } catch (mailErr2) {
+    emailSent = false;   // la reserva ya esta guardada y confirmada; la web lo indicara
+  }
+  teamNotice_('NUEVA', ref, mine[0].r, items);
   cache.put(holdKey, String(Number(cache.get(holdKey) || 0) + 1), 700);
-  return json_({ ok: true, ref: ref, pending: true, expiresAt: expMs });
+  return json_({ ok: true, ref: ref, pending: false, emailSent: emailSent });
 }
 
 // Localiza la reserva y valida el token del email
@@ -408,7 +490,7 @@ function confirm_(body) {
   for (var n = 0; n < f.mine.length; n++) setState_(f.sh, f.mine[n].n, 'CONFIRMADA', null);
   SpreadsheetApp.flush();
   var items = itemsOf_(f.mine);
-  notifyOrganizer_('Reserva confirmada ' + f.ref + ' · ' + f.mine[0].r[9] + ' ' + f.mine[0].r[10], 'Reserva CONFIRMADA (ref. ' + f.ref + ')\n\n' + linesOf_(items) + '\n\n' + personText_(f.mine[0].r));
+  teamNotice_('NUEVA', f.ref, f.mine[0].r, items);
   return json_({ ok: true, state: 'CONFIRMADA', ref: f.ref, items: items });
 }
 
@@ -424,7 +506,7 @@ function cancel_(body) {
   }
   SpreadsheetApp.flush();
   if (st === 'CONFIRMADA') {
-    notifyOrganizer_('Reserva CANCELADA ' + f.ref + ' · ' + f.mine[0].r[9] + ' ' + f.mine[0].r[10], 'El participante ha cancelado su reserva (ref. ' + f.ref + '). Las bicis quedan libres.\n\n' + linesOf_(itemsOf_(f.mine)) + '\n\n' + personText_(f.mine[0].r));
+    teamNotice_('CANCELADA', f.ref, f.mine[0].r, itemsOf_(f.mine));
   }
   return json_({ ok: true, state: 'CANCELADA', ref: f.ref });
 }

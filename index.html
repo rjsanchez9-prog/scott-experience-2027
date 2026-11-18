@@ -27,7 +27,7 @@
   <meta name="twitter:description" content="Spark RC y Addict Gravel 2027. 11–15 dic · Algeciras · Málaga · Córdoba · Andújar.">
   <meta name="twitter:image" content="https://rjsanchez9-prog.github.io/scott-experience-2027/assets/img/og-scott-experience-2027.jpg">
 
-  <link rel="stylesheet" href="css/style.css?v=8">
+  <link rel="stylesheet" href="css/style.css?v=9">
 </head>
 <body>
   <div id="demo-banner" class="demo-banner" hidden>Modo demostración · las reservas no se envían a ningún sitio (falta configurar API_URL)</div>
@@ -81,7 +81,7 @@
           <li><span class="num">1</span><h3>Elige día y tienda</h3><p>Cinco jornadas en cuatro ciudades, con la tienda SCOTT de cada una.</p></li>
           <li><span class="num">2</span><h3>Elige tu bici</h3><p>MTB por la mañana, gravel a última hora. Modelo y talla, con stock real.</p></li>
           <li><span class="num">3</span><h3>Tus datos</h3><p>Datos de contacto y de emergencia para poder rodar con seguridad.</p></li>
-          <li><span class="num">4</span><h3>Acepta y confirma</h3><p>Lee el descargo completo y valida tu reserva con el enlace que te llega por email.</p></li>
+          <li><span class="num">4</span><h3>Acepta y confirma</h3><p>Lee el descargo completo, marca las casillas y recibe la confirmación por email.</p></li>
         </ol>
       </div>
     </section>
@@ -161,8 +161,10 @@
                 <label class="field"><span>Correo electrónico</span><input name="email" type="email" autocomplete="email" required maxlength="120"></label>
                 <label class="field"><span>Contacto de emergencia (nombre)</span><input name="emergenciaNombre" type="text" autocomplete="off" required maxlength="80"></label>
                 <label class="field"><span>Teléfono de emergencia</span><input name="emergenciaTelefono" type="tel" inputmode="tel" autocomplete="off" required maxlength="20"></label>
+                <label class="field"><span>Peso (kg)</span><input name="peso" type="number" inputmode="decimal" min="30" max="250" step="0.1" required placeholder="Ej. 72"></label>
+                <label class="field"><span>Altura de sillín (cm) <em class="opt">opcional</em></span><input name="sillin" type="number" inputmode="decimal" min="50" max="100" step="0.1" placeholder="Ej. 74"></label>
               </div>
-              <p class="hint">Solo pueden participar personas mayores de 18 años.</p>
+              <p class="hint">Solo pueden participar personas mayores de 18 años. El peso y la altura de sillín (si la conoces) sirven para dejar la bici preparada.</p>
               <p class="form-error" id="kyc-error" role="alert" hidden></p>
             </form>
           </div>
@@ -205,10 +207,10 @@
             <p class="waiver-status" id="waiver-status">Aún no has llegado al final del documento.</p>
 
             <div class="waiver-accept">
+              <label class="check"><input type="checkbox" id="waiver-read" disabled>
+                <span>He <strong>leído y comprendido</strong> el documento completo.</span></label>
               <label class="check"><input type="checkbox" id="waiver-check" disabled>
-                <span>He leído y comprendido el documento completo y <strong>acepto sus condiciones</strong>, incluido el uso obligatorio del casco.</span></label>
-              <label class="field"><span>Firma: escribe tu nombre y apellidos completos</span>
-                <input type="text" id="waiver-signature" autocomplete="off" disabled placeholder="Nombre y apellidos"></label>
+                <span><strong>Acepto las condiciones</strong> del documento, incluido el uso obligatorio del casco.</span></label>
               <label class="check"><input type="checkbox" id="privacy-check">
                 <span>Acepto el <button type="button" class="link" id="open-privacy">tratamiento de mis datos personales</button> para gestionar mi reserva y la seguridad de la actividad.</span></label>
               <p class="doc-link"><a href="assets/docs/descargo-v2-2027.docx" download>Descargar el documento original (.docx)</a></p>
@@ -221,7 +223,7 @@
             <h3>5 · Revisa y confirma</h3>
             <div id="summary" class="summary"></div>
             <div class="hp" aria-hidden="true"><label>No rellenar este campo<input type="text" id="hp-field" name="website" tabindex="-1" autocomplete="off"></label></div>
-            <p class="hint">Al confirmar te enviaremos un email con un enlace para <strong>validar tu reserva</strong>. La bici queda retenida 30 minutos para ti.</p>
+            <p class="hint">Al confirmar, tu reserva queda <strong>confirmada</strong> y te enviamos un email con todos los datos y un enlace para cancelarla si no puedes venir.</p>
             <p class="form-error" id="submit-error" role="alert" hidden></p>
           </div>
 
@@ -262,7 +264,7 @@
             </ul></li>
           <li><b>Llega 30 minutos antes.</b> Preséntate en la tienda media hora antes del inicio de tu test.</li>
           <li><b>Duración.</b> Entre 1 h y 1 h 30 min de ruta al aire libre.</li>
-          <li><b>Confirma por email.</b> Tu reserva se valida con el enlace que te enviamos (30 minutos). Desde ese mismo enlace puedes cancelarla y liberar la bici.</li>
+          <li><b>Confirmación por email.</b> Recibirás un único email con tu reserva. Si no puedes venir, cancélala desde el enlace del email para liberar la bici.</li>
           <li><b>Lleva tu documento</b> de identidad (DNI/NIE/pasaporte).</li>
           <li><b>Solo mayores de 18 años.</b></li>
           <li><b>Horarios:</b> MTB 09:30–11:00 · Gravel 11:30–13:00 · y el sábado 12, MTB también de 15:00 a 16:30 (solo Spark RC).</li>
@@ -284,14 +286,14 @@
       <p><strong>Finalidad:</strong> gestionar tu reserva del test, contactar contigo si hay cambios y poder actuar en caso de accidente o emergencia, facilitando tus datos a los servicios de emergencia si fuera necesario.</p>
       <p><strong>Datos:</strong> identificación, fecha de nacimiento, contacto, contacto de emergencia y aceptación del descargo.</p>
       <p><strong>Destinatarios:</strong> la organización del test y la tienda en la que reserves. No se ceden a terceros salvo obligación legal o emergencia.</p>
-      <p><strong>Confirmación y cancelación:</strong> usamos tu correo para enviarte un enlace personal con el que validar o cancelar tu reserva. Las reservas sin confirmar caducan a los 30 minutos.</p>
+      <p><strong>Confirmación y cancelación:</strong> usamos tu correo para enviarte la confirmación y un enlace personal con el que cancelar tu reserva. Una copia con tus datos de contacto, peso y altura de sillín (si la indicas) llega a la organización y al coordinador de la tienda donde reservas, para preparar las bicis.</p>
       <p><strong>Derechos:</strong> puedes solicitar acceso, rectificación, supresión u oposición escribiendo a la organización.</p>
       <button class="btn" value="close">Entendido</button>
     </form>
   </dialog>
 
-  <script src="js/config.js?v=8"></script>
-  <script src="js/data.js?v=8"></script>
-  <script src="js/app.js?v=8"></script>
+  <script src="js/config.js?v=9"></script>
+  <script src="js/data.js?v=9"></script>
+  <script src="js/app.js?v=9"></script>
 </body>
 </html>

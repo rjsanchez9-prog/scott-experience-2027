@@ -267,7 +267,7 @@
   }
   function validateKyc() {
     var f = $("#kyc-form"), v = {}, bad = [], msgs = [];
-    ["nombre", "apellidos", "documento", "nacimiento", "telefono", "email", "emergenciaNombre", "emergenciaTelefono"].forEach(function (n) {
+    ["nombre", "apellidos", "documento", "nacimiento", "telefono", "email", "emergenciaNombre", "emergenciaTelefono", "peso", "sillin"].forEach(function (n) {
       v[n] = f.elements[n].value.trim(); f.elements[n].setAttribute("aria-invalid", "false");
     });
     function fail(n, msg) { bad.push(n); if (msgs.indexOf(msg) < 0) msgs.push(msg); }
@@ -282,6 +282,12 @@
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/.test(v.email)) fail("email", "Revisa tu correo electrónico.");
     if (v.emergenciaNombre.length < 2) fail("emergenciaNombre", "Indica un contacto de emergencia.");
     if (!phoneOk(v.emergenciaTelefono)) fail("emergenciaTelefono", "Revisa el teléfono de emergencia.");
+    var peso = parseFloat(String(v.peso).replace(",", "."));                       // peso: obligatorio
+    if (!(peso >= 30 && peso <= 250)) fail("peso", "Indica tu peso en kg (entre 30 y 250).");
+    if (v.sillin !== "") {                                                         // altura de sillin: opcional, pero si se rellena debe ser valida
+      var sillin = parseFloat(String(v.sillin).replace(",", "."));
+      if (!(sillin >= 50 && sillin <= 100)) fail("sillin", "La altura de sillín debe estar entre 50 y 100 cm (o déjala en blanco).");
+    }
     bad.forEach(function (n) { f.elements[n].setAttribute("aria-invalid", "true"); });
     var box = $("#kyc-error");
     if (bad.length) { box.hidden = false; box.textContent = msgs.join(" "); f.elements[bad[0]].focus(); return null; }
@@ -290,11 +296,8 @@
 
   /* ---------- Paso 4: descargo ---------- */
   function waiverValid() {
-    return state.waiverRead && $("#waiver-check").checked && $("#privacy-check").checked && signatureOk();
-  }
-  function signatureOk() {
-    if (!state.person) return false;
-    return norm($("#waiver-signature").value) === norm(state.person.nombre + " " + state.person.apellidos);
+    // Basta con las casillas de lectura y aceptacion (y la de datos personales); ya no se pide firmar con el nombre
+    return state.waiverRead && $("#waiver-read").checked && $("#waiver-check").checked && $("#privacy-check").checked;
   }
   function onWaiverScroll() {
     var w = $("#waiver"), max = w.scrollHeight - w.clientHeight;
@@ -304,11 +307,10 @@
   }
   function updateWaiverUI() {
     var st = $("#waiver-status");
+    $("#waiver-read").disabled = !state.waiverRead;
     $("#waiver-check").disabled = !state.waiverRead;
-    $("#waiver-signature").disabled = !state.waiverRead;
     st.classList.toggle("ok", state.waiverRead);
-    st.textContent = state.waiverRead ? "Has leído el documento completo. Ya puedes aceptarlo." : "Aún no has llegado al final del documento: desplázate hasta el final para poder aceptarlo.";
-    if (state.person) $("#waiver-signature").placeholder = state.person.nombre + " " + state.person.apellidos;
+    st.textContent = state.waiverRead ? "Has llegado al final del documento. Ya puedes marcar las casillas." : "Aún no has llegado al final del documento: desplázate hasta el final para poder marcar las casillas.";
     if (state.step === 4) setTimeout(onWaiverScroll, 0);
   }
 
@@ -329,7 +331,8 @@
       rows += '<dl class="sum-row"><dt>Participante</dt><dd>' + esc(person.nombre + " " + person.apellidos) + "<br>" + esc(person.documento) + "</dd></dl>" +
         '<dl class="sum-row"><dt>Contacto</dt><dd>' + esc(person.email) + "<br>" + esc(person.telefono) + "</dd></dl>" +
         '<dl class="sum-row"><dt>Emergencia</dt><dd>' + esc(person.emergenciaNombre) + " · " + esc(person.emergenciaTelefono) + "</dd></dl>" +
-        '<dl class="sum-row"><dt>Descargo</dt><dd>Leído y aceptado · firmado como «' + esc($("#waiver-signature").value.trim()) + "»</dd></dl>";
+        '<dl class="sum-row"><dt>Ajuste bici</dt><dd>Peso ' + esc(person.peso) + " kg" + (person.sillin ? " · sillín " + esc(person.sillin) + " cm" : "") + "</dd></dl>" +
+        '<dl class="sum-row"><dt>Descargo</dt><dd>Leído y aceptado</dd></dl>';
     }
     return rows;
   }
@@ -347,7 +350,7 @@
     var payload = {
       requestId: state.requestId, bookings: bookings, person: state.person, privacy: true,
       hp: $("#hp-field").value, elapsedMs: Date.now() - T0,   // anti-bots: campo trampa y tiempo desde que se abrio la pagina
-      waiver: { accepted: true, version: C.WAIVER_VERSION, signature: $("#waiver-signature").value.trim(), acceptedAt: new Date().toISOString() }
+      waiver: { read: $("#waiver-read").checked, accepted: $("#waiver-check").checked, version: C.WAIVER_VERSION, acceptedAt: new Date().toISOString() }
     };
     state.submitting = true; $("#btn-next").textContent = "Enviando…"; setStatus("Enviando tu reserva… puede tardar unos segundos. No cierres la página.", true); updateNext();
     var done = DEMO ? demoSubmit(payload) : fetch(C.API_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(payload) }).then(function (r) { return r.json(); });
@@ -417,8 +420,11 @@
       });
     } else {
       $("#done-icon").textContent = "✓"; $("#done-title").textContent = "¡Reserva confirmada!";
-      $("#done-note").textContent = DEMO ? "Modo demostración: esta reserva solo existe en este navegador." :
-        "Llega 30 minutos antes del inicio de tu test. Recuerda llevar casco (obligatorio) y tu documento de identidad.";
+      $("#done-note").innerHTML = DEMO ? "Modo demostración: esta reserva solo existe en este navegador." :
+        (res.emailSent === false
+          ? "<strong>No hemos podido enviarte el email ahora mismo</strong>, pero tu reserva está confirmada: guarda tu referencia (" + esc(ref) + "). "
+          : "Te hemos enviado la confirmación a <strong>" + esc(state.person.email) + "</strong>; revisa también el spam. Si no puedes venir, cancela desde el enlace del email. ") +
+        "Llega 30 minutos antes del inicio de tu test, con casco (obligatorio) y tu documento de identidad.";
       $("#done-actions").innerHTML = '<button type="button" class="btn" id="dl-ics">Añadir al calendario</button>';
       $("#dl-ics").addEventListener("click", function () { downloadICS(ref); });
     }
@@ -459,7 +465,7 @@
     state.height = null; $("#height-input").value = ""; $("#size-result").innerHTML = "";
     state.dayDate = null; state.enabled = {}; state.picks = {};
     state.person = null; state.waiverRead = false; state.notice = "";
-    $("#kyc-form").reset(); $("#waiver-check").checked = false; $("#privacy-check").checked = false; $("#waiver-signature").value = "";
+    $("#kyc-form").reset(); $("#waiver-read").checked = false; $("#waiver-check").checked = false; $("#privacy-check").checked = false;
     $("#waiver").scrollTop = 0; $("#waiver-bar").style.width = "0";
   }
   function resetAll() {
@@ -533,8 +539,7 @@
     $("#kyc-form").addEventListener("input", function (e) { e.target.setAttribute("aria-invalid", "false"); });
     $("#waiver").addEventListener("scroll", onWaiverScroll, { passive: true });
     window.addEventListener("resize", function () { if (state.step === 4) onWaiverScroll(); });
-    ["#waiver-check", "#privacy-check"].forEach(function (s) { $(s).addEventListener("change", updateNext); });
-    $("#waiver-signature").addEventListener("input", updateNext);
+    ["#waiver-read", "#waiver-check", "#privacy-check"].forEach(function (s) { $(s).addEventListener("change", updateNext); });
     $("#open-privacy").addEventListener("click", function () { var d = $("#privacy-dialog"); if (d.showModal) d.showModal(); else d.setAttribute("open", ""); });
     $("#new-booking").addEventListener("click", resetAll);
 

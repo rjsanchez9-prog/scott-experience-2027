@@ -27,7 +27,7 @@
   <meta name="twitter:description" content="Spark RC y Addict Gravel 2027. 11–15 dic · Algeciras · Málaga · Córdoba · Andújar.">
   <meta name="twitter:image" content="https://rjsanchez9-prog.github.io/scott-experience-2027/assets/img/og-scott-experience-2027.jpg">
 
-  <link rel="stylesheet" href="css/style.css?v=4">
+  <link rel="stylesheet" href="css/style.css?v=5">
 </head>
 <body>
   <div id="demo-banner" class="demo-banner" hidden>Modo demostración · las reservas no se envían a ningún sitio (falta configurar API_URL)</div>
@@ -62,11 +62,13 @@
           <a class="btn btn-lg" href="#reservar">Reservar mi test</a>
           <a class="btn btn-lg btn-ghost" href="#bicis">Ver las bicis</a>
         </div>
-        <ul class="hero-dates" aria-label="Fechas y ciudades">
-          <li><b>11 dic</b> Algeciras</li>
-          <li><b>12–13 dic</b> Málaga</li>
-          <li><b>14 dic</b> Córdoba</li>
-          <li><b>15 dic</b> Andújar</li>
+        <p class="hero-dates-label" id="hero-dates-label">Elige tu día y reserva directamente:</p>
+        <ul class="hero-dates" aria-labelledby="hero-dates-label">
+          <li><button type="button" class="date-chip" data-date="2026-12-11" aria-label="Reservar el viernes 11 de diciembre en Algeciras"><b>11 dic</b> Algeciras <span class="arr" aria-hidden="true">→</span></button></li>
+          <li><button type="button" class="date-chip" data-date="2026-12-12" aria-label="Reservar el sábado 12 de diciembre en Málaga"><b>12 dic</b> Málaga <span class="arr" aria-hidden="true">→</span></button></li>
+          <li><button type="button" class="date-chip" data-date="2026-12-13" aria-label="Reservar el domingo 13 de diciembre en Málaga"><b>13 dic</b> Málaga <span class="arr" aria-hidden="true">→</span></button></li>
+          <li><button type="button" class="date-chip" data-date="2026-12-14" aria-label="Reservar el lunes 14 de diciembre en Córdoba"><b>14 dic</b> Córdoba <span class="arr" aria-hidden="true">→</span></button></li>
+          <li><button type="button" class="date-chip" data-date="2026-12-15" aria-label="Reservar el martes 15 de diciembre en Andújar"><b>15 dic</b> Andújar <span class="arr" aria-hidden="true">→</span></button></li>
         </ul>
       </div>
     </section>
@@ -110,7 +112,7 @@
           <li data-step="5">Confirmar</li>
         </ol>
 
-        <div id="booking" class="booking" aria-live="polite">
+        <div id="booking" class="booking">
           <!-- Zona de la tienda: visible en todo el proceso de reserva (pasos 2-5 y confirmación) -->
           <div class="store-banner" id="store-banner" hidden></div>
 
@@ -190,7 +192,7 @@
                 <input type="text" id="waiver-signature" autocomplete="off" disabled placeholder="Nombre y apellidos"></label>
               <label class="check"><input type="checkbox" id="privacy-check">
                 <span>Acepto el <button type="button" class="link" id="open-privacy">tratamiento de mis datos personales</button> para gestionar mi reserva y la seguridad de la actividad.</span></label>
-              <p class="doc-link"><a href="assets/docs/descargo-responsabilidad-test-scott-2027.docx" download>Descargar el documento original (.docx)</a></p>
+              <p class="doc-link"><a href="assets/docs/descargo-v2-2027.docx" download>Descargar el documento original (.docx)</a></p>
             </div>
             <p class="form-error" id="waiver-error" role="alert" hidden></p>
           </div>
@@ -212,6 +214,8 @@
             <div class="done-actions" id="done-actions"></div>
             <button class="btn btn-ghost" type="button" id="new-booking">Hacer otra reserva</button>
           </div>
+
+          <p class="status" id="status" role="status" aria-live="polite"></p>
 
           <div class="nav-buttons" id="nav-buttons">
             <button class="btn btn-ghost" type="button" id="btn-back" hidden>Atrás</button>
@@ -263,8 +267,8 @@
     </form>
   </dialog>
 
-  <script src="js/config.js?v=4"></script>
-  <script src="js/data.js?v=4"></script>
-  <script src="js/app.js?v=4"></script>
+  <script src="js/config.js?v=5"></script>
+  <script src="js/data.js?v=5"></script>
+  <script src="js/app.js?v=5"></script>
 </body>
 </html>

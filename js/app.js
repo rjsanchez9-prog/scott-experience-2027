@@ -25,7 +25,24 @@
   function sessionById(id) { return D.sessions.filter(function (s) { return s.id === id; })[0]; }
   function hm(s) { return s.start + "–" + s.end; }
   function dayByDate(date) { return D.days.filter(function (d) { return d.date === date; })[0]; }
-  function norm(s) { return String(s).toLowerCase().replace(/\s+/g, " ").trim(); }
+  function norm(s) {
+    s = String(s).toLowerCase();
+    if (s.normalize) s = s.normalize("NFD").replace(/[̀-ͯ]/g, "");   // "García" = "Garcia"
+    return s.replace(/\s+/g, " ").trim();
+  }
+  function newRequestId() {
+    var ch = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789", out = "";
+    for (var i = 0; i < 8; i++) out += ch.charAt(Math.floor(Math.random() * ch.length));
+    return out;
+  }
+  function setStatus(text, loading) { var el = $("#status"); el.textContent = text || ""; el.classList.toggle("loading", !!loading); }
+  // Bloquea el boton principal y muestra un aviso mientras dura una espera (el backend puede tardar unos segundos)
+  function busy(label, p) {
+    var b = $("#btn-next");
+    b.disabled = true; b.textContent = label; setStatus(label, true);
+    function restore() { b.textContent = state.step === 5 ? "Confirmar reserva" : "Continuar"; setStatus("", false); updateNext(); }
+    return p.then(function (v) { restore(); return v; }, function (e) { restore(); throw e; });
+  }
 
   var state = {
     step: 1, dayDate: null, enabled: {}, picks: {},
@@ -79,6 +96,7 @@
 
   /* ---------- Pasos ---------- */
   function go(step, opts) {
+    var quiet = opts && (opts.silent || opts.fromPop);
     state.step = step;
     $$(".panel").forEach(function (p) { p.hidden = String(p.getAttribute("data-panel")) !== String(step); });
     $$("#stepper li").forEach(function (li) {
@@ -96,7 +114,12 @@
     if (step === 4) { updateWaiverUI(); }
     if (step === 5) renderSummary();
     updateNext();
-    if (!opts || !opts.silent) $("#stepper").scrollIntoView({ block: "start", behavior: "smooth" });
+    if (!quiet) {
+      try { history.pushState({ scx: step }, "", location.href); } catch (e) {}   // el boton "Atras" del navegador vuelve al paso anterior
+      $("#stepper").scrollIntoView({ block: "start", behavior: "smooth" });
+      var h = $('.panel[data-panel="' + step + '"] > h3');                          // el foco pasa al titulo del paso (teclado / lector de pantalla)
+      if (h) { h.setAttribute("tabindex", "-1"); h.focus({ preventScroll: true }); }
+    }
   }
 
   /* Banner con el logo de la tienda elegida: visible en todo el proceso (pasos 2-5 y confirmación) */
@@ -270,19 +293,22 @@
   function submit() {
     if (state.submitting) return;
     var bookings = bookingsList().map(function (b) { return { sessionId: b.sessionId, bikeId: b.bikeId, size: b.size }; });
+    // Identificador de intento: si la respuesta se pierde y el cliente reintenta, el servidor devuelve la misma reserva sin duplicarla
+    var fp = JSON.stringify(bookings) + "|" + (state.person && state.person.documento);
+    if (!state.requestId || state.requestFp !== fp) { state.requestId = newRequestId(); state.requestFp = fp; }
     var payload = {
-      bookings: bookings, person: state.person, privacy: true,
+      requestId: state.requestId, bookings: bookings, person: state.person, privacy: true,
       waiver: { accepted: true, version: C.WAIVER_VERSION, signature: $("#waiver-signature").value.trim(), acceptedAt: new Date().toISOString() }
     };
-    state.submitting = true; $("#btn-next").textContent = "Enviando…"; updateNext();
+    state.submitting = true; $("#btn-next").textContent = "Enviando…"; setStatus("Enviando tu reserva… puede tardar unos segundos. No cierres la página.", true); updateNext();
     var done = DEMO ? demoSubmit(payload) : fetch(C.API_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(payload) }).then(function (r) { return r.json(); });
     done.then(function (res) {
-      state.submitting = false; $("#btn-next").textContent = "Confirmar reserva";
+      state.submitting = false; $("#btn-next").textContent = "Confirmar reserva"; setStatus("", false);
       if (res && res.ok) return success(res.ref);
       handleError(res || { error: "SERVER" });
     }).catch(function () {
-      state.submitting = false; $("#btn-next").textContent = "Confirmar reserva"; updateNext();
-      showSubmitError("No hemos podido conectar con el servidor. Comprueba tu conexión e inténtalo de nuevo.");
+      state.submitting = false; $("#btn-next").textContent = "Confirmar reserva"; setStatus("", false); updateNext();
+      showSubmitError("No hemos podido confirmar si tu reserva se ha guardado. Comprueba tu conexión y pulsa «Confirmar reserva» otra vez: si ya estaba guardada, no se duplicará.");
     });
   }
   function demoSubmit(payload) {
@@ -312,7 +338,7 @@
     }
     var map = {
       UNDERAGE: "Solo pueden participar personas mayores de 18 años.",
-      DUPLICATE: "Ya existe una reserva con este correo para ese test.",
+      DUPLICATE: res.detail || "Ya existe una reserva con este documento de identidad para ese test.",
       WAIVER: "No se ha podido validar la aceptación del descargo. Revisa la firma (debe coincidir con tu nombre y apellidos).",
       INVALID: res.detail || "Algún dato no es válido. Revísalos e inténtalo de nuevo."
     };
@@ -349,11 +375,25 @@
     document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500);
   }
 
-  function resetAll() {
+  // Desde los chips de fecha/ciudad de la cabecera: preselecciona ese dia/tienda y lleva directo a elegir bici
+  function jumpToDay(date) {
+    if (state.submitting) return;
+    if (state.step === "done") { resetState(); renderDays(); }
+    if (state.dayDate !== date) { state.enabled = {}; state.picks = {}; }
+    state.dayDate = date;
+    $$(".day-card").forEach(function (c) { c.setAttribute("aria-pressed", String(c.getAttribute("data-date") === date)); });
+    busy("Comprobando disponibilidad…", loadAvailability()).then(function () { go(2); });
+  }
+
+  function resetState() {
+    state.requestId = ""; state.requestFp = "";
     state.dayDate = null; state.enabled = {}; state.picks = {};
     state.person = null; state.waiverRead = false; state.notice = "";
     $("#kyc-form").reset(); $("#waiver-check").checked = false; $("#privacy-check").checked = false; $("#waiver-signature").value = "";
     $("#waiver").scrollTop = 0; $("#waiver-bar").style.width = "0";
+  }
+  function resetAll() {
+    resetState();
     renderDays();
     loadAvailability().then(function () { go(1); });
   }
@@ -396,8 +436,8 @@
     $("#btn-back").addEventListener("click", function () { if (state.step > 1) go(state.step - 1); });
     $("#btn-next").addEventListener("click", function () {
       var s = state.step;
-      if (s === 1) { loadAvailability().then(function () { go(2); }); }
-      else if (s === 2) { loadAvailability().then(function () {
+      if (s === 1) { busy("Comprobando disponibilidad…", loadAvailability()).then(function () { go(2); }); }
+      else if (s === 2) { busy("Comprobando disponibilidad…", loadAvailability()).then(function () {
         // por si el stock cambio mientras elegia
         var changed = false;
         sessionsOfDay(state.dayDate).forEach(function (se) {
@@ -419,6 +459,23 @@
     $("#waiver-signature").addEventListener("input", updateNext);
     $("#open-privacy").addEventListener("click", function () { var d = $("#privacy-dialog"); if (d.showModal) d.showModal(); else d.setAttribute("open", ""); });
     $("#new-booking").addEventListener("click", resetAll);
+
+    // Chips de fecha/ciudad de la cabecera: botones que llevan directo a reservar ese dia y tienda
+    $$(".date-chip").forEach(function (chip) {
+      chip.addEventListener("click", function () { jumpToDay(chip.getAttribute("data-date")); });
+    });
+
+    // Boton "Atras" del navegador = paso anterior (en vez de salir de la pagina); aviso si se recarga con datos a medias
+    try { history.replaceState({ scx: 1 }, "", location.href); } catch (e) {}
+    window.addEventListener("popstate", function (e) {
+      var st = e.state && e.state.scx;
+      if (!st) return;
+      if (st !== 1 && !state.dayDate) st = 1;
+      go(st, { fromPop: true });
+    });
+    window.addEventListener("beforeunload", function (e) {
+      if (state.step === 3 || state.step === 4 || state.step === 5) { e.preventDefault(); e.returnValue = ""; }
+    });
 
     loadAvailability().then(function () { renderGallery(); go(1, { silent: true }); });
   }

@@ -11,6 +11,7 @@ var ORGANIZER_EMAIL = 'CAMBIAR@tu-dominio.com';   // recibe copia de cada reserv
 var SENDER_NAME     = 'SCOTT Experience 2027';
 var SHEET_NAME      = 'Reservas';
 var SPREADSHEET_ID  = '';   // vacio = script creado desde Extensiones > Apps Script de la propia hoja; si el script es independiente, pon aqui el ID de la hoja
+var WAIVER_URL      = 'https://rjsanchez9-prog.github.io/scott-experience-2027/assets/docs/descargo-v2-2027.docx';   // copia del texto aceptado (se envia en el email)
 var WAIVER_VERSION  = 'v2-2027';   // v2: duracion 1 h - 1 h 30 min (cambiar tambien en js/config.js)
 // ==================================
 
@@ -66,6 +67,13 @@ function txt_(v) {
   return String(v);
 }
 
+// Minusculas, sin tildes y sin espacios repetidos: para comparar nombres y documentos
+function fold_(s) {
+  return String(s).toLowerCase().replace(/[áàäâ]/g, 'a').replace(/[éèëê]/g, 'e').replace(/[íìïî]/g, 'i')
+    .replace(/[óòöô]/g, 'o').replace(/[úùüû]/g, 'u').replace(/ñ/g, 'n').replace(/ç/g, 'c').replace(/\s+/g, ' ').trim();
+}
+function docKey_(s) { return fold_(s).replace(/[^a-z0-9]/g, ''); }
+
 function slug_(s) {
   return String(s).toLowerCase().replace(/[áàä]/g, 'a').replace(/[éèë]/g, 'e').replace(/[íìï]/g, 'i')
     .replace(/[óòö]/g, 'o').replace(/[úùü]/g, 'u').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
@@ -111,6 +119,19 @@ function doPost(e) {
     var p = body.person || {};
     var w = body.waiver || {};
     var bookings = body.bookings || [];
+    var requestId = /^[A-Z0-9]{6,12}$/.test(String(body.requestId || '')) ? String(body.requestId) : '';
+
+    // Reintento de una reserva ya guardada (p. ej. se perdio la respuesta): devolver la misma referencia sin duplicar
+    if (requestId) {
+      var shR = getSheet_(), lastR = shR.getLastRow();
+      if (lastR > 1) {
+        var refs = shR.getRange(2, 2, lastR - 1, 1).getValues();
+        for (var q = 0; q < refs.length; q++) {
+          var rr = String(refs[q][0]);
+          if (rr.length > requestId.length && rr.slice(-(requestId.length + 1)) === '-' + requestId) return json_({ ok: true, ref: rr, retry: true });
+        }
+      }
+    }
 
     // --- Validacion ---
     if (!bookings.length || bookings.length > 2) return json_({ ok: false, error: 'INVALID', detail: 'Reserva vacia o con demasiados tests.' });
@@ -121,23 +142,24 @@ function doPost(e) {
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(clean_(p.email))) return json_({ ok: false, error: 'INVALID', detail: 'Email no valido.' });
     if (!isAdult_(clean_(p.nacimiento))) return json_({ ok: false, error: 'UNDERAGE', detail: 'Solo mayores de 18 anos.' });
     if (w.accepted !== true || w.version !== WAIVER_VERSION) return json_({ ok: false, error: 'WAIVER', detail: 'Debes aceptar el descargo de responsabilidad.' });
-    var fullName = (clean_(p.nombre) + ' ' + clean_(p.apellidos)).toLowerCase().replace(/\s+/g, ' ');
-    if (clean_(w.signature).toLowerCase().replace(/\s+/g, ' ') !== fullName) return json_({ ok: false, error: 'WAIVER', detail: 'La firma debe coincidir con tu nombre y apellidos.' });
+    var fullName = fold_(clean_(p.nombre) + ' ' + clean_(p.apellidos));
+    if (fold_(clean_(w.signature)) !== fullName) return json_({ ok: false, error: 'WAIVER', detail: 'La firma debe coincidir con tu nombre y apellidos.' });
     if (body.privacy !== true) return json_({ ok: false, error: 'INVALID', detail: 'Debes aceptar el tratamiento de datos.' });
 
     var sh = getSheet_();
     var booked = countBooked_(sh);
     var email = clean_(p.email).toLowerCase();
 
-    // Un mismo email no puede repetir sesion; mismo dia: maximo un test de cada tipo
+    // Un mismo documento no puede repetir sesion; mismo dia: maximo un test de cada tipo (el email puede compartirse)
+    var docK = docKey_(clean_(p.documento, 30));
     var existing = {};
     var last = sh.getLastRow();
     if (last > 1) {
       sh.getRange(2, 1, last - 1, HEADERS.length).getValues().forEach(function (r) {
         if (String(r[22]) === 'CANCELADA') return;
-        var em = String(r[14]).toLowerCase();
-        existing[em + '|' + sid_(r[2], r[4], r[6], r[3])] = true;
-        existing[em + '|day|' + txt_(r[2]) + '|' + r[6]] = true;   // mismo dia y tipo
+        var dk = docKey_(r[11]);
+        existing[dk + '|' + sid_(r[2], r[4], r[6], r[3])] = true;
+        existing[dk + '|day|' + txt_(r[2]) + '|' + r[6]] = true;   // mismo dia y tipo
       });
     }
 
@@ -153,8 +175,8 @@ function doPost(e) {
       var dayType = s.date + '|' + s.type;
       if (seen[dayType]) return json_({ ok: false, error: 'INVALID', detail: 'Solo un test de cada tipo por dia.' });
       seen[dayType] = true;
-      if (existing[email + '|day|' + s.date + '|' + s.type]) return json_({ ok: false, error: 'DUPLICATE', detail: 'Ya tienes una reserva de este tipo de test ese dia con este email.' });
-      if (existing[email + '|' + b.sessionId]) return json_({ ok: false, error: 'DUPLICATE', detail: 'Ya tienes una reserva para este test con este email.' });
+      if (existing[docK + '|day|' + s.date + '|' + s.type]) return json_({ ok: false, error: 'DUPLICATE', detail: 'Ya existe una reserva de este tipo de test ese dia con este documento.' });
+      if (existing[docK + '|' + b.sessionId]) return json_({ ok: false, error: 'DUPLICATE', detail: 'Ya existe una reserva para este test con este documento.' });
       var key = b.sessionId + '|' + b.bikeId + '|' + b.size;
       if ((booked[key] || 0) >= STOCK[b.bikeId][b.size]) {
         return json_({ ok: false, error: 'SOLD_OUT', detail: 'Esa bicicleta/talla se acaba de agotar para este test.', key: key });
@@ -162,7 +184,7 @@ function doPost(e) {
     }
 
     // --- Guardar ---
-    var ref = 'SCX-' + Utilities.formatDate(new Date(), 'Europe/Madrid', 'MMdd') + '-' + Math.random().toString(36).slice(2, 6).toUpperCase();
+    var ref = 'SCX-' + Utilities.formatDate(new Date(), 'Europe/Madrid', 'MMdd') + '-' + (requestId || Math.random().toString(36).slice(2, 8).toUpperCase());
     var now = Utilities.formatDate(new Date(), 'Europe/Madrid', 'yyyy-MM-dd HH:mm:ss');
     var acceptedAt = clean_(w.acceptedAt, 40) || now;
     var lines = [];
@@ -180,11 +202,12 @@ function doPost(e) {
 
     // --- Emails ---
     var text = 'Hola ' + clean_(p.nombre) + ',\n\nTu reserva para el SCOTT Experience 2027 esta confirmada (ref. ' + ref + ').\n\n' +
-      lines.join('\n\n') + '\n\nRecuerda: llega 30 minutos antes del inicio de tu test. El test dura entre 1 h y 1 h 30 min. El casco es obligatorio y sin el no podras participar. Lleva tu DNI/NIE/pasaporte.\n' +
+      lines.join('\n\n') + '\n\nDescargo de responsabilidad aceptado (' + WAIVER_VERSION + '): ' + WAIVER_URL + '\n\nRecuerda: llega 30 minutos antes del inicio de tu test. El test dura entre 1 h y 1 h 30 min. El casco es obligatorio y sin el no podras participar. Lleva tu DNI/NIE/pasaporte.\n' +
       'Si no puedes asistir, responde a este correo para liberar la bicicleta.\n\nNos vemos en la ruta,\n' + SENDER_NAME;
     try {
       MailApp.sendEmail({ to: email, subject: 'Reserva confirmada · SCOTT Experience 2027 · ' + ref, body: text, name: SENDER_NAME, replyTo: ORGANIZER_EMAIL });
-      if (ORGANIZER_EMAIL && ORGANIZER_EMAIL.indexOf('CAMBIAR') === -1) {
+      // la copia al organizador solo se manda si queda cuota diaria de sobra: la confirmacion al participante tiene prioridad
+      if (ORGANIZER_EMAIL && ORGANIZER_EMAIL.indexOf('CAMBIAR') === -1 && MailApp.getRemainingDailyQuota() >= 10) {
         MailApp.sendEmail({ to: ORGANIZER_EMAIL, subject: 'Nueva reserva ' + ref + ' · ' + clean_(p.nombre) + ' ' + clean_(p.apellidos), body: text + '\n\nTel: ' + clean_(p.telefono) + '\nEmail: ' + email, name: SENDER_NAME });
       }
     } catch (mailErr) { /* la reserva ya esta guardada; no se bloquea al usuario */ }

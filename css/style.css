@@ -4,7 +4,7 @@
 :root {
   --ink: #020817;
   --ink-2: #333a48;
-  --muted: #667085;
+  --muted: #566074;
   --line: #e4e6ea;
   --soft: #f3f4f5;
   --paper: #ffffff;
@@ -58,7 +58,7 @@ button { font: inherit; }
 .btn:hover:not(:disabled) { background: #1d2740; }
 .btn:active:not(:disabled) { transform: translateY(1px); }
 .btn:disabled { opacity: .35; cursor: not-allowed; }
-.btn-sm { min-height: 38px; padding: 0 16px; }
+.btn-sm { min-height: 44px; padding: 0 16px; }
 .btn-lg { min-height: 52px; padding: 0 30px; font-size: 14px; }
 .btn-ghost { background: transparent; color: var(--ink); }
 .btn-ghost:hover:not(:disabled) { background: var(--ink); color: #fff; }
@@ -280,3 +280,31 @@ button { font: inherit; }
 .map-link { font-weight: 700; text-decoration: underline; text-underline-offset: 3px; color: var(--ink); }
 .loc-list { list-style: none; padding: 0; margin: 8px 0 0; display: grid; gap: 4px; }
 .loc-list a { color: var(--ink); font-weight: 700; text-underline-offset: 3px; }
+
+/* Chips de fecha/ciudad de la cabecera: botones que llevan directo a reservar */
+.hero-dates-label { margin-top: 36px; font: 700 12px/1 var(--font-head); text-transform: uppercase; letter-spacing: .14em; color: var(--ink-2); }
+.hero-dates { margin-top: 12px; }
+.hero-dates li { background: none; box-shadow: none; padding: 0; }
+.date-chip {
+  display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 14px;
+  background: #fff; color: var(--ink); border: 2px solid transparent; border-radius: 2px; cursor: pointer;
+  font: 400 14px var(--font-body); box-shadow: 0 1px 0 rgba(2,8,23,.08);
+  transition: background .15s, color .15s, border-color .15s, transform .05s;
+}
+.date-chip b { font-family: var(--font-head); margin-right: 2px; }
+.date-chip .arr { font-weight: 700; transition: transform .15s; }
+.date-chip:hover { background: var(--ink); color: #fff; }
+.date-chip:hover .arr { transform: translateX(3px); }
+.date-chip:active { transform: translateY(1px); }
+.date-chip:focus-visible { border-color: var(--accent); }
+
+/* Aviso de espera (comprobando disponibilidad / enviando) */
+.status { min-height: 0; margin: 14px 0 0; font-size: 14px; font-weight: 700; color: var(--ink-2); display: flex; align-items: center; gap: 10px; }
+.status:empty { display: none; }
+.status.loading::before {
+  content: ""; width: 16px; height: 16px; border: 2px solid var(--line); border-top-color: var(--ink); border-radius: 50%;
+  animation: spin .8s linear infinite; flex: none;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .status.loading::before { animation-duration: 2s; } }
+.panel > h3:focus { outline: none; }

@@ -94,104 +94,136 @@ window.SCOTT_DATA = {
   ],
   "sessions": [
     {
-      "id": "2026-12-11_algeciras_mtb",
+      "id": "2026-12-11_algeciras_mtb_0930",
       "date": "2026-12-11",
       "weekday": "Viernes",
       "city": "Algeciras",
       "store": "Special Bikes",
       "type": "mtb",
+      "period": "Mañana",
       "start": "09:30",
-      "end": "11:00"
+      "end": "11:00",
+      "arrive": "09:00"
     },
     {
-      "id": "2026-12-11_algeciras_gravel",
+      "id": "2026-12-11_algeciras_gravel_1130",
       "date": "2026-12-11",
       "weekday": "Viernes",
       "city": "Algeciras",
       "store": "Special Bikes",
       "type": "gravel",
+      "period": "Mañana",
       "start": "11:30",
-      "end": "13:00"
+      "end": "13:00",
+      "arrive": "11:00"
     },
     {
-      "id": "2026-12-12_malaga_mtb",
+      "id": "2026-12-12_malaga_mtb_0930",
       "date": "2026-12-12",
       "weekday": "Sábado",
       "city": "Málaga",
       "store": "Bike Philosophy",
       "type": "mtb",
+      "period": "Mañana",
       "start": "09:30",
-      "end": "11:00"
+      "end": "11:00",
+      "arrive": "09:00"
     },
     {
-      "id": "2026-12-12_malaga_gravel",
+      "id": "2026-12-12_malaga_gravel_1130",
       "date": "2026-12-12",
       "weekday": "Sábado",
       "city": "Málaga",
       "store": "Bike Philosophy",
       "type": "gravel",
+      "period": "Mañana",
       "start": "11:30",
-      "end": "13:00"
+      "end": "13:00",
+      "arrive": "11:00"
     },
     {
-      "id": "2026-12-13_malaga_mtb",
+      "id": "2026-12-12_malaga_mtb_1500",
+      "date": "2026-12-12",
+      "weekday": "Sábado",
+      "city": "Málaga",
+      "store": "Bike Philosophy",
+      "type": "mtb",
+      "period": "Tarde",
+      "start": "15:00",
+      "end": "16:30",
+      "arrive": "14:30"
+    },
+    {
+      "id": "2026-12-13_malaga_mtb_0930",
       "date": "2026-12-13",
       "weekday": "Domingo",
       "city": "Málaga",
       "store": "Bike Philosophy",
       "type": "mtb",
+      "period": "Mañana",
       "start": "09:30",
-      "end": "11:00"
+      "end": "11:00",
+      "arrive": "09:00"
     },
     {
-      "id": "2026-12-13_malaga_gravel",
+      "id": "2026-12-13_malaga_gravel_1130",
       "date": "2026-12-13",
       "weekday": "Domingo",
       "city": "Málaga",
       "store": "Bike Philosophy",
       "type": "gravel",
+      "period": "Mañana",
       "start": "11:30",
-      "end": "13:00"
+      "end": "13:00",
+      "arrive": "11:00"
     },
     {
-      "id": "2026-12-14_cordoba_mtb",
+      "id": "2026-12-14_cordoba_mtb_0930",
       "date": "2026-12-14",
       "weekday": "Lunes",
       "city": "Córdoba",
       "store": "Córdoba Bike",
       "type": "mtb",
+      "period": "Mañana",
       "start": "09:30",
-      "end": "11:00"
+      "end": "11:00",
+      "arrive": "09:00"
     },
     {
-      "id": "2026-12-14_cordoba_gravel",
+      "id": "2026-12-14_cordoba_gravel_1130",
       "date": "2026-12-14",
       "weekday": "Lunes",
       "city": "Córdoba",
       "store": "Córdoba Bike",
       "type": "gravel",
+      "period": "Mañana",
       "start": "11:30",
-      "end": "13:00"
+      "end": "13:00",
+      "arrive": "11:00"
     },
     {
-      "id": "2026-12-15_andujar_mtb",
+      "id": "2026-12-15_andujar_mtb_0930",
       "date": "2026-12-15",
       "weekday": "Martes",
       "city": "Andújar",
       "store": "Kanina Bikes Andújar",
       "type": "mtb",
+      "period": "Mañana",
       "start": "09:30",
-      "end": "11:00"
+      "end": "11:00",
+      "arrive": "09:00"
     },
     {
-      "id": "2026-12-15_andujar_gravel",
+      "id": "2026-12-15_andujar_gravel_1130",
       "date": "2026-12-15",
       "weekday": "Martes",
       "city": "Andújar",
       "store": "Kanina Bikes Andújar",
       "type": "gravel",
+      "period": "Mañana",
       "start": "11:30",
-      "end": "13:00"
+      "end": "13:00",
+      "arrive": "11:00"
     }
   ],
   "days": [

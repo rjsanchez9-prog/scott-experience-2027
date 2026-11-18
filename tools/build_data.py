@@ -98,15 +98,27 @@ def main():
         ("2026-12-14", "Lunes",   "Córdoba",   "Córdoba Bike"),
         ("2026-12-15", "Martes",  "Andújar",   "Kanina Bikes Andújar"),
     ]
-    tests = [("mtb", "09:30", "11:00"), ("gravel", "11:30", "13:00")]
+    # Cada test dura entre 1 h y 1 h 30 min; hay que presentarse ARRIVE_MIN minutos antes del inicio.
+    ARRIVE_MIN = 30
+    tests = [("mtb", "Mañana", "09:30", "11:00"), ("gravel", "Mañana", "11:30", "13:00")]
+    # Test adicional: sábado 12 en Bike Philosophy, solo Spark RC (MTB), por la tarde.
+    extra = {"2026-12-12": [("mtb", "Tarde", "15:00", "16:30")]}
+
+    def minus(hm, minutes):
+        h, m = map(int, hm.split(":"))
+        t = h * 60 + m - minutes
+        return f"{t // 60:02d}:{t % 60:02d}"
+
     sessions = []
     for date, weekday, city, store in days:
         slug = re.sub(r"[^a-z0-9]+", "-", city.lower().replace("ú", "u").replace("á", "a").replace("ó", "o"))
-        for typ, start, end in tests:
+        day_tests = sorted(tests + extra.get(date, []), key=lambda t: t[2])
+        for typ, period, start, end in day_tests:
             sessions.append(OrderedDict([
-                ("id", f"{date}_{slug}_{typ}"),
+                ("id", f"{date}_{slug}_{typ}_{start.replace(':', '')}"),
                 ("date", date), ("weekday", weekday), ("city", city), ("store", store),
-                ("type", typ), ("start", start), ("end", end),
+                ("type", typ), ("period", period), ("start", start), ("end", end),
+                ("arrive", minus(start, ARRIVE_MIN)),
             ]))
 
     # Logos de tienda (PNG convertidos desde los TIFF "logo <tienda>.tiff" de la carpeta del proyecto).
@@ -128,7 +140,7 @@ def main():
     # 4) bloque STOCK de Apps Script (mismos datos: el servidor no se fia del navegador)
     gs_stock = {b["id"]: dict(b["sizes"]) for b in bikes}
     gs_sessions = {s["id"]: {"type": s["type"], "date": s["date"], "city": s["city"], "store": s["store"],
-                             "start": s["start"], "end": s["end"]} for s in sessions}
+                             "start": s["start"], "end": s["end"], "arrive": s["arrive"]} for s in sessions}
     gs_bikes = {b["id"]: {"type": b["type"], "label": f'{b["family"]} {b["name"]} · {b["color"]}'} for b in bikes}
     block = ("// <STOCK-BEGIN> generado por tools/build_data.py\n"
              f"var STOCK = {json.dumps(gs_stock, ensure_ascii=False)};\n"

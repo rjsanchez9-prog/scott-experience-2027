@@ -21,12 +21,14 @@
   function bikeName(b) { return b.family + " " + b.name; }
   function bikesOf(type) { return D.bikes.filter(function (b) { return b.type === type; }); }
   function bikeById(id) { return D.bikes.filter(function (b) { return b.id === id; })[0]; }
-  function sessionFor(date, type) { return D.sessions.filter(function (s) { return s.date === date && s.type === type; })[0]; }
+  function sessionsOfDay(date) { return D.sessions.filter(function (s) { return s.date === date; }); }
+  function sessionById(id) { return D.sessions.filter(function (s) { return s.id === id; })[0]; }
+  function hm(s) { return s.start + "–" + s.end; }
   function dayByDate(date) { return D.days.filter(function (d) { return d.date === date; })[0]; }
   function norm(s) { return String(s).toLowerCase().replace(/\s+/g, " ").trim(); }
 
   var state = {
-    step: 1, dayDate: null, enabled: { mtb: false, gravel: false }, picks: { mtb: null, gravel: null },
+    step: 1, dayDate: null, enabled: {}, picks: {},
     person: null, waiverRead: false, booked: {}, availabilityFailed: false, submitting: false, notice: ""
   };
 
@@ -128,17 +130,17 @@
       return '<button type="button" class="day-card" data-date="' + d.date + '" aria-pressed="' + sel + '">' +
         '<span class="day-date"><div class="dow">' + esc(d.weekday.slice(0, 3)) + '</div><div class="dnum">' + p.d + '</div><div class="dmon">' + MONTHS[p.m - 1] + "</div></span>" +
         '<span class="logo-tile sm" style="background:' + d.logoBg + '"><img src="' + esc(d.logo) + '" alt="Logo ' + esc(d.store) + '" loading="lazy"></span>' +
-        '<span class="day-info"><div class="city">' + esc(d.city) + '</div><div class="store">' + esc(d.store) + '</div><div class="tests">MTB 09:30–11:00 · Gravel 11:30–13:00</div></span>' +
+        '<span class="day-info"><div class="city">' + esc(d.city) + '</div><div class="store">' + esc(d.store) + '</div><div class="tests">' + sessionsOfDay(d.date).map(function (s) { return TYPE_SHORT[s.type] + " " + hm(s); }).join(" · ") + "</div></span>" +
         '<span class="day-radio" aria-hidden="true"></span></button>';
     }).join("");
   }
 
   /* ---------- Paso 2: tests ---------- */
   function testsValid() {
-    var any = false;
-    for (var i = 0; i < 2; i++) {
-      var t = ["mtb", "gravel"][i];
-      if (state.enabled[t]) { any = true; if (!state.picks[t]) return false; }
+    var any = false, list = sessionsOfDay(state.dayDate);
+    for (var i = 0; i < list.length; i++) {
+      var id = list[i].id;
+      if (state.enabled[id]) { any = true; if (!state.picks[id]) return false; }
     }
     return any;
   }
@@ -149,15 +151,15 @@
       (state.availabilityFailed ? '<br><span class="hint">No hemos podido comprobar el stock en este momento; se verificará al confirmar.</span>' : "") +
       (state.notice ? '<div class="form-error">' + esc(state.notice) + "</div>" : "");
     state.notice = "";
-    $("#tests-box").innerHTML = ["mtb", "gravel"].map(function (t) { return testBlockHTML(t); }).join("");
+    $("#tests-box").innerHTML = sessionsOfDay(state.dayDate).map(function (s) { return testBlockHTML(s.id); }).join("");
   }
-  function testBlockHTML(type) {
-    var s = sessionFor(state.dayDate, type);
+  function testBlockHTML(sid) {
+    var s = sessionById(sid), type = s.type;
     var left = sessionRemaining(s), cap = sessionCapacity(type);
-    var on = state.enabled[type];
+    var on = !!state.enabled[sid];
     var badgeCls = left === 0 ? "badge out" : (left <= 3 ? "badge low" : "badge");
     var badgeTxt = left === 0 ? "Completo" : (left + " de " + cap + " libres");
-    var pick = state.picks[type];
+    var pick = state.picks[sid];
     var body = "";
     if (on) {
       body = '<div class="test-body"><div class="pick-grid">' + bikesOf(type).map(function (b) {
@@ -165,22 +167,22 @@
         var sizes = Object.keys(b.sizes).map(function (sz) {
           var r = remaining(s.id, b, sz);
           var pressed = selected && pick.size === sz;
-          return '<button type="button" class="size-btn" data-type="' + type + '" data-bike="' + b.id + '" data-size="' + sz + '" aria-pressed="' + pressed + '"' + (r === 0 ? " disabled" : "") +
+          return '<button type="button" class="size-btn" data-session="' + sid + '" data-bike="' + b.id + '" data-size="' + sz + '" aria-pressed="' + pressed + '"' + (r === 0 ? " disabled" : "") +
             ' aria-label="Talla ' + sz + ", " + (r === 0 ? "agotada" : r + (r === 1 ? " unidad libre" : " unidades libres")) + '">' + sz + "<small>" + (r === 0 ? "agotada" : "quedan " + r) + "</small></button>";
         }).join("");
         return '<div class="pick-card' + (selected ? " selected" : "") + '"><div class="photo"><img loading="lazy" src="' + esc(b.img) + '" alt="' + esc(bikeName(b) + " " + b.color) + '"></div>' +
           '<div class="pbody"><div class="pname">' + esc(bikeName(b)) + '</div><div class="pcolor">' + esc(b.color) + " · pedales " + esc(b.pedal) + '</div><div class="size-chips">' + sizes + "</div></div></div>";
       }).join("") + "</div></div>";
     }
-    return '<div class="test-block' + (on ? " on" : "") + '" data-block="' + type + '">' +
-      '<button type="button" class="test-head" data-toggle="' + type + '" aria-expanded="' + on + '"' + (left === 0 ? " disabled" : "") + '>' +
-      '<span class="box" aria-hidden="true">✓</span><span class="left"><div class="t-title">' + TYPE_LABEL[type] + '</div><div class="t-sub">' + esc(s.start) + "–" + esc(s.end) + " · " + esc(s.store) + "</div></span>" +
+    return '<div class="test-block' + (on ? " on" : "") + '" data-block="' + sid + '">' +
+      '<button type="button" class="test-head" data-toggle="' + sid + '" aria-expanded="' + on + '"' + (left === 0 ? " disabled" : "") + '>' +
+      '<span class="box" aria-hidden="true">✓</span><span class="left"><div class="t-title">' + TYPE_LABEL[type] + " · " + esc(s.period) + '</div><div class="t-sub">' + esc(hm(s)) + " · " + esc(s.store) + '</div><div class="t-arrive">Presentarse a las <strong>' + esc(s.arrive) + "</strong> (30 min antes)</div></span>" +
       '<span class="' + badgeCls + '">' + badgeTxt + "</span></button>" + body + "</div>";
   }
-  function refreshBlock(type) {
-    var el = $('[data-block="' + type + '"]');
+  function refreshBlock(sid) {
+    var el = $('[data-block="' + sid + '"]');
     var tmp = document.createElement("div");
-    tmp.innerHTML = testBlockHTML(type);
+    tmp.innerHTML = testBlockHTML(sid);
     el.parentNode.replaceChild(tmp.firstChild, el);
     updateNext();
   }
@@ -240,16 +242,16 @@
 
   /* ---------- Paso 5: resumen ---------- */
   function bookingsList() {
-    return ["mtb", "gravel"].filter(function (t) { return state.enabled[t] && state.picks[t]; }).map(function (t) {
-      var s = sessionFor(state.dayDate, t), b = bikeById(state.picks[t].bikeId);
-      return { sessionId: s.id, bikeId: b.id, size: state.picks[t].size, session: s, bike: b };
+    return sessionsOfDay(state.dayDate).filter(function (s) { return state.enabled[s.id] && state.picks[s.id]; }).map(function (s) {
+      var b = bikeById(state.picks[s.id].bikeId);
+      return { sessionId: s.id, bikeId: b.id, size: state.picks[s.id].size, session: s, bike: b };
     });
   }
   function summaryHTML(person, withPerson) {
     var rows = bookingsList().map(function (bk) {
       var p = parseDate(bk.session.date);
       return '<dl class="sum-row sum-test"><dt>' + TYPE_SHORT[bk.session.type] + "</dt><dd><strong>" + esc(bk.session.weekday) + " " + p.d + " " + MONTHS[p.m - 1] + " · " + esc(bk.session.start) + "–" + esc(bk.session.end) + "</strong><br>" +
-        esc(bk.session.store) + " (" + esc(bk.session.city) + ")<br>" + esc(bikeName(bk.bike)) + " · " + esc(bk.bike.color) + " · <strong>talla " + esc(bk.size) + "</strong></dd></dl>";
+        esc(bk.session.store) + " (" + esc(bk.session.city) + ")<br>Presentarse a las <strong>" + esc(bk.session.arrive) + "</strong> (30 min antes)<br>" + esc(bikeName(bk.bike)) + " · " + esc(bk.bike.color) + " · <strong>talla " + esc(bk.size) + "</strong></dd></dl>";
     }).join("");
     if (withPerson && person) {
       rows += '<dl class="sum-row"><dt>Participante</dt><dd>' + esc(person.nombre + " " + person.apellidos) + "<br>" + esc(person.documento) + "</dd></dl>" +
@@ -303,7 +305,7 @@
     updateNext();
     if (res.error === "SOLD_OUT") {
       state.notice = "Lo sentimos: esa bici/talla se acaba de agotar en este test. Elige otra opción.";
-      state.picks = { mtb: null, gravel: null };
+      state.picks = {};
       loadAvailability().then(function () { go(2); });
       return;
     }
@@ -320,7 +322,7 @@
     $("#done-ref").textContent = ref;
     $("#done-summary").innerHTML = summaryHTML(null, false);
     $("#done-note").textContent = DEMO ? "Modo demostración: esta reserva solo existe en este navegador." :
-      "Te hemos enviado la confirmación a " + state.person.email + ". Recuerda llevar casco (obligatorio) y tu documento de identidad.";
+      "Te hemos enviado la confirmación a " + state.person.email + ". Llega 30 minutos antes del inicio de tu test. Recuerda llevar casco (obligatorio) y tu documento de identidad.";
     $("#done-actions").innerHTML = '<button type="button" class="btn" id="dl-ics">Añadir al calendario</button>';
     $("#dl-ics").addEventListener("click", function () { downloadICS(ref); });
     state.lastRef = ref; state.submitting = false;
@@ -335,9 +337,9 @@
     var ev = bookingsList().map(function (b, i) {
       return ["BEGIN:VEVENT", "UID:" + ref + "-" + i + "@scott-experience-2027", "DTSTAMP:" + now,
         "DTSTART:" + stamp(b.session.date, b.session.start), "DTEND:" + stamp(b.session.date, b.session.end),
-        "SUMMARY:Test SCOTT " + TYPE_SHORT[b.session.type] + " · " + bikeName(b.bike) + " (" + b.size + ")",
+        "SUMMARY:Test SCOTT " + TYPE_SHORT[b.session.type] + " · " + bikeName(b.bike) + " (" + b.size + ") · llegar " + b.session.arrive,
         "LOCATION:" + b.session.store + "\\, " + b.session.city,
-        "DESCRIPTION:Referencia " + ref + ". Casco obligatorio. Lleva tu documento de identidad.", "END:VEVENT"].join("\r\n");
+        "DESCRIPTION:Referencia " + ref + ". Presentate a las " + b.session.arrive + " (30 minutos antes del inicio). Casco obligatorio. Lleva tu documento de identidad.", "END:VEVENT"].join("\r\n");
     }).join("\r\n");
     var ics = "BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//SCOTT Experience 2027//ES\r\nCALSCALE:GREGORIAN\r\n" + ev + "\r\nEND:VCALENDAR\r\n";
     var a = document.createElement("a");
@@ -347,7 +349,7 @@
   }
 
   function resetAll() {
-    state.dayDate = null; state.enabled = { mtb: false, gravel: false }; state.picks = { mtb: null, gravel: null };
+    state.dayDate = null; state.enabled = {}; state.picks = {};
     state.person = null; state.waiverRead = false; state.notice = "";
     $("#kyc-form").reset(); $("#waiver-check").checked = false; $("#privacy-check").checked = false; $("#waiver-signature").value = "";
     $("#waiver").scrollTop = 0; $("#waiver-bar").style.width = "0";
@@ -363,7 +365,7 @@
 
     $("#day-grid").addEventListener("click", function (e) {
       var b = e.target.closest(".day-card"); if (!b) return;
-      if (state.dayDate !== b.getAttribute("data-date")) { state.enabled = { mtb: false, gravel: false }; state.picks = { mtb: null, gravel: null }; }
+      if (state.dayDate !== b.getAttribute("data-date")) { state.enabled = {}; state.picks = {}; }
       state.dayDate = b.getAttribute("data-date");
       $$(".day-card").forEach(function (c) { c.setAttribute("aria-pressed", String(c === b)); });
       updateNext();
@@ -373,13 +375,20 @@
       var head = e.target.closest("[data-toggle]");
       if (head) {
         var t = head.getAttribute("data-toggle"); state.enabled[t] = !state.enabled[t]; if (!state.enabled[t]) state.picks[t] = null;
+        if (state.enabled[t]) {
+          // un solo test de cada tipo por dia: al elegir uno se desmarca el otro del mismo tipo
+          var me = sessionById(t);
+          sessionsOfDay(state.dayDate).forEach(function (o) {
+            if (o.id !== t && o.type === me.type && state.enabled[o.id]) { state.enabled[o.id] = false; state.picks[o.id] = null; refreshBlock(o.id); }
+          });
+        }
         refreshBlock(t); return;
       }
       var sz = e.target.closest(".size-btn");
       if (sz && !sz.disabled) {
-        var type = sz.getAttribute("data-type");
-        state.picks[type] = { bikeId: sz.getAttribute("data-bike"), size: sz.getAttribute("data-size") };
-        refreshBlock(type);
+        var sid = sz.getAttribute("data-session");
+        state.picks[sid] = { bikeId: sz.getAttribute("data-bike"), size: sz.getAttribute("data-size") };
+        refreshBlock(sid);
       }
     });
 
@@ -390,9 +399,9 @@
       else if (s === 2) { loadAvailability().then(function () {
         // por si el stock cambio mientras elegia
         var changed = false;
-        ["mtb", "gravel"].forEach(function (t) {
-          var p = state.picks[t]; if (!p) return;
-          if (remaining(sessionFor(state.dayDate, t).id, bikeById(p.bikeId), p.size) === 0) { state.picks[t] = null; changed = true; }
+        sessionsOfDay(state.dayDate).forEach(function (se) {
+          var p = state.picks[se.id]; if (!p) return;
+          if (remaining(se.id, bikeById(p.bikeId), p.size) === 0) { state.picks[se.id] = null; changed = true; }
         });
         if (changed) { state.notice = "Una de tus opciones se ha agotado mientras elegías. Selecciona otra."; renderTests(); updateNext(); } else go(3);
       }); }

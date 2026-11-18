@@ -6,5 +6,5 @@
  */
 window.SCOTT_CONFIG = {
   API_URL: "https://script.google.com/macros/s/AKfycby_CueYPLyc-Lc0W8W6uKEkr1s2zIcwCvqIWBhx33wGAs_IV26hognBthy6nq4BaCtAaQ/exec",
-  WAIVER_VERSION: "v1-2027"
+  WAIVER_VERSION: "v2-2027"
 };

@@ -11,13 +11,13 @@ var ORGANIZER_EMAIL = 'CAMBIAR@tu-dominio.com';   // recibe copia de cada reserv
 var SENDER_NAME     = 'SCOTT Experience 2027';
 var SHEET_NAME      = 'Reservas';
 var SPREADSHEET_ID  = '';   // vacio = script creado desde Extensiones > Apps Script de la propia hoja; si el script es independiente, pon aqui el ID de la hoja
-var WAIVER_VERSION  = 'v1-2027';
+var WAIVER_VERSION  = 'v2-2027';   // v2: duracion 1 h - 1 h 30 min (cambiar tambien en js/config.js)
 // ==================================
 
 // <STOCK-BEGIN> generado por tools/build_data.py
 var STOCK = {"mtb-team-issue-carbon-black": {"S": 1, "M": 6, "XL": 1}, "mtb-world-cup-evo-rush-white-carbon-black": {"S": 1, "M": 1}, "mtb-world-cup-cumulus-white-carbon-black": {"L": 2}, "gravel-20-watery-black": {"S": 1, "M": 3, "L": 1, "XL": 1}, "gravel-20-mojito-green": {"M": 1}, "gravel-10-lupine-grey": {"M": 1}};
 var BIKES = {"mtb-team-issue-carbon-black": {"type": "mtb", "label": "Spark RC Team Issue · Carbon Black"}, "mtb-world-cup-evo-rush-white-carbon-black": {"type": "mtb", "label": "Spark RC World Cup EVO · Rush White / Carbon Black"}, "mtb-world-cup-cumulus-white-carbon-black": {"type": "mtb", "label": "Spark RC World Cup · Cumulus White / Carbon Black"}, "gravel-20-watery-black": {"type": "gravel", "label": "Addict Gravel 20 · Watery Black"}, "gravel-20-mojito-green": {"type": "gravel", "label": "Addict Gravel 20 · Mojito Green"}, "gravel-10-lupine-grey": {"type": "gravel", "label": "Addict Gravel 10 · Lupine Grey"}};
-var SESSIONS = {"2026-12-11_algeciras_mtb": {"type": "mtb", "date": "2026-12-11", "city": "Algeciras", "store": "Special Bikes", "start": "09:30", "end": "11:00"}, "2026-12-11_algeciras_gravel": {"type": "gravel", "date": "2026-12-11", "city": "Algeciras", "store": "Special Bikes", "start": "11:30", "end": "13:00"}, "2026-12-12_malaga_mtb": {"type": "mtb", "date": "2026-12-12", "city": "Málaga", "store": "Bike Philosophy", "start": "09:30", "end": "11:00"}, "2026-12-12_malaga_gravel": {"type": "gravel", "date": "2026-12-12", "city": "Málaga", "store": "Bike Philosophy", "start": "11:30", "end": "13:00"}, "2026-12-13_malaga_mtb": {"type": "mtb", "date": "2026-12-13", "city": "Málaga", "store": "Bike Philosophy", "start": "09:30", "end": "11:00"}, "2026-12-13_malaga_gravel": {"type": "gravel", "date": "2026-12-13", "city": "Málaga", "store": "Bike Philosophy", "start": "11:30", "end": "13:00"}, "2026-12-14_cordoba_mtb": {"type": "mtb", "date": "2026-12-14", "city": "Córdoba", "store": "Córdoba Bike", "start": "09:30", "end": "11:00"}, "2026-12-14_cordoba_gravel": {"type": "gravel", "date": "2026-12-14", "city": "Córdoba", "store": "Córdoba Bike", "start": "11:30", "end": "13:00"}, "2026-12-15_andujar_mtb": {"type": "mtb", "date": "2026-12-15", "city": "Andújar", "store": "Kanina Bikes Andújar", "start": "09:30", "end": "11:00"}, "2026-12-15_andujar_gravel": {"type": "gravel", "date": "2026-12-15", "city": "Andújar", "store": "Kanina Bikes Andújar", "start": "11:30", "end": "13:00"}};
+var SESSIONS = {"2026-12-11_algeciras_mtb_0930": {"type": "mtb", "date": "2026-12-11", "city": "Algeciras", "store": "Special Bikes", "start": "09:30", "end": "11:00", "arrive": "09:00"}, "2026-12-11_algeciras_gravel_1130": {"type": "gravel", "date": "2026-12-11", "city": "Algeciras", "store": "Special Bikes", "start": "11:30", "end": "13:00", "arrive": "11:00"}, "2026-12-12_malaga_mtb_0930": {"type": "mtb", "date": "2026-12-12", "city": "Málaga", "store": "Bike Philosophy", "start": "09:30", "end": "11:00", "arrive": "09:00"}, "2026-12-12_malaga_gravel_1130": {"type": "gravel", "date": "2026-12-12", "city": "Málaga", "store": "Bike Philosophy", "start": "11:30", "end": "13:00", "arrive": "11:00"}, "2026-12-12_malaga_mtb_1500": {"type": "mtb", "date": "2026-12-12", "city": "Málaga", "store": "Bike Philosophy", "start": "15:00", "end": "16:30", "arrive": "14:30"}, "2026-12-13_malaga_mtb_0930": {"type": "mtb", "date": "2026-12-13", "city": "Málaga", "store": "Bike Philosophy", "start": "09:30", "end": "11:00", "arrive": "09:00"}, "2026-12-13_malaga_gravel_1130": {"type": "gravel", "date": "2026-12-13", "city": "Málaga", "store": "Bike Philosophy", "start": "11:30", "end": "13:00", "arrive": "11:00"}, "2026-12-14_cordoba_mtb_0930": {"type": "mtb", "date": "2026-12-14", "city": "Córdoba", "store": "Córdoba Bike", "start": "09:30", "end": "11:00", "arrive": "09:00"}, "2026-12-14_cordoba_gravel_1130": {"type": "gravel", "date": "2026-12-14", "city": "Córdoba", "store": "Córdoba Bike", "start": "11:30", "end": "13:00", "arrive": "11:00"}, "2026-12-15_andujar_mtb_0930": {"type": "mtb", "date": "2026-12-15", "city": "Andújar", "store": "Kanina Bikes Andújar", "start": "09:30", "end": "11:00", "arrive": "09:00"}, "2026-12-15_andujar_gravel_1130": {"type": "gravel", "date": "2026-12-15", "city": "Andújar", "store": "Kanina Bikes Andújar", "start": "11:30", "end": "13:00", "arrive": "11:00"}};
 // <STOCK-END>
 
 var HEADERS = ['Fecha registro', 'Referencia', 'Fecha test', 'Hora', 'Ciudad', 'Tienda', 'Test', 'Modelo',
@@ -47,11 +47,17 @@ function countBooked_(sh) {
   var rows = sh.getRange(2, 1, last - 1, HEADERS.length).getValues();
   rows.forEach(function (r) {
     if (String(r[22]) === 'CANCELADA') return;
-    var sessionId = txt_(r[2]) + '_' + slug_(r[4]) + '_' + r[6];
+    var sessionId = sid_(r[2], r[4], r[6], r[3]);
     var key = sessionId + '|' + findBikeId_(r[7]) + '|' + r[8];
     booked[key] = (booked[key] || 0) + 1;
   });
   return booked;
+}
+
+// Id de sesion a partir de una fila de la hoja: fecha_ciudad_tipo_HHMM  (p. ej. 2026-12-12_malaga_mtb_1500)
+function sid_(date, city, type, hora) {
+  var hhmm = String(hora).slice(0, 5).replace(':', '');
+  return txt_(date) + '_' + slug_(city) + '_' + type + '_' + hhmm;
 }
 
 // Sheets puede devolver "2026-12-15" como objeto Date: lo normalizamos siempre a texto yyyy-MM-dd
@@ -128,7 +134,10 @@ function doPost(e) {
     var last = sh.getLastRow();
     if (last > 1) {
       sh.getRange(2, 1, last - 1, HEADERS.length).getValues().forEach(function (r) {
-        if (String(r[22]) !== 'CANCELADA') existing[String(r[14]).toLowerCase() + '|' + txt_(r[2]) + '_' + slug_(r[4]) + '_' + r[6]] = true;
+        if (String(r[22]) === 'CANCELADA') return;
+        var em = String(r[14]).toLowerCase();
+        existing[em + '|' + sid_(r[2], r[4], r[6], r[3])] = true;
+        existing[em + '|day|' + txt_(r[2]) + '|' + r[6]] = true;   // mismo dia y tipo
       });
     }
 
@@ -141,6 +150,10 @@ function doPost(e) {
       if (!STOCK[b.bikeId] || !(b.size in STOCK[b.bikeId])) return json_({ ok: false, error: 'INVALID', detail: 'Talla no valida.' });
       if (seen[b.sessionId]) return json_({ ok: false, error: 'INVALID', detail: 'Sesion repetida.' });
       seen[b.sessionId] = true;
+      var dayType = s.date + '|' + s.type;
+      if (seen[dayType]) return json_({ ok: false, error: 'INVALID', detail: 'Solo un test de cada tipo por dia.' });
+      seen[dayType] = true;
+      if (existing[email + '|day|' + s.date + '|' + s.type]) return json_({ ok: false, error: 'DUPLICATE', detail: 'Ya tienes una reserva de este tipo de test ese dia con este email.' });
       if (existing[email + '|' + b.sessionId]) return json_({ ok: false, error: 'DUPLICATE', detail: 'Ya tienes una reserva para este test con este email.' });
       var key = b.sessionId + '|' + b.bikeId + '|' + b.size;
       if ((booked[key] || 0) >= STOCK[b.bikeId][b.size]) {
@@ -161,13 +174,13 @@ function doPost(e) {
         safe_(clean_(p.nombre)), safe_(clean_(p.apellidos)), safe_(clean_(p.documento, 30)), clean_(p.nacimiento, 10),
         safe_(clean_(p.telefono, 30)), email, safe_(clean_(p.emergenciaNombre)), safe_(clean_(p.emergenciaTelefono, 30)),
         'SI', WAIVER_VERSION, safe_(clean_(w.signature)), acceptedAt, 'SI', 'CONFIRMADA']);
-      lines.push((s.type === 'mtb' ? 'MTB' : 'Gravel') + ' · ' + s.date + ' ' + s.start + '-' + s.end + ' · ' + s.store + ' (' + s.city + ')\n   ' + bike.label + ' · talla ' + b.size);
+      lines.push((s.type === 'mtb' ? 'MTB' : 'Gravel') + ' · ' + s.date + ' ' + s.start + '-' + s.end + ' · ' + s.store + ' (' + s.city + ')\n   Presentate a las ' + s.arrive + ' (30 minutos antes del inicio)\n   ' + bike.label + ' · talla ' + b.size);
     });
     SpreadsheetApp.flush();
 
     // --- Emails ---
     var text = 'Hola ' + clean_(p.nombre) + ',\n\nTu reserva para el SCOTT Experience 2027 esta confirmada (ref. ' + ref + ').\n\n' +
-      lines.join('\n\n') + '\n\nRecuerda: el casco es obligatorio y sin el no podras participar. Lleva tu DNI/NIE/pasaporte.\n' +
+      lines.join('\n\n') + '\n\nRecuerda: llega 30 minutos antes del inicio de tu test. El test dura entre 1 h y 1 h 30 min. El casco es obligatorio y sin el no podras participar. Lleva tu DNI/NIE/pasaporte.\n' +
       'Si no puedes asistir, responde a este correo para liberar la bicicleta.\n\nNos vemos en la ruta,\n' + SENDER_NAME;
     try {
       MailApp.sendEmail({ to: email, subject: 'Reserva confirmada · SCOTT Experience 2027 · ' + ref, body: text, name: SENDER_NAME, replyTo: ORGANIZER_EMAIL });

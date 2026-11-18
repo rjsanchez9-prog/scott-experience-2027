@@ -268,3 +268,7 @@ button { font: inherit; }
   .waiver { padding: 14px; }
 }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } * { transition: none !important; } }
+
+/* Llegada 30 min antes */
+.t-arrive { font-size: 13px; color: var(--ink-2); margin-top: 3px; }
+.t-arrive strong { font-family: var(--font-head); }

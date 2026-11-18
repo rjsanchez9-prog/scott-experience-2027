@@ -27,6 +27,12 @@ var MAX_PENDING_PER_EMAIL   = 3;    // reservas pendientes de confirmar a la vez
 var MAX_NEW_HOLDS_PER_10MIN = 40;   // tope global de reservas nuevas cada 10 min (freno a oleadas de bots)
 var MAX_ACTIVE_PER_EMAIL    = 6;    // reservas confirmadas a la vez por email (una pareja o familia puede compartir correo)
 
+// Recordatorio: un email a cada reserva confirmada cuando faltan REMINDER_HOURS horas para su test.
+// Solo recuerda y ofrece cancelar: NUNCA cancela nada por su cuenta, tampoco si el participante no responde.
+var REMINDER_HOURS          = 72;   // cuanto antes del test se envia
+var REMINDER_MIN_LEAD_HOURS = 2;    // si faltan menos horas que esto ya no se envia
+var REMINDER_MAX_PER_RUN    = 30;   // tope por ejecucion (cada hora); el resto sale en la siguiente
+
 // false: la reserva queda CONFIRMADA nada mas enviarla y el participante recibe UN solo email (confirmacion, con enlace para cancelar).
 // true : la reserva queda PENDIENTE y el participante debe validar el enlace del email antes de HOLD_MINUTES (mas proteccion anti-bots).
 var REQUIRE_EMAIL_CONFIRMATION = false;
@@ -47,8 +53,8 @@ var HEADERS = ['Fecha registro', 'Referencia', 'Fecha test', 'Hora', 'Ciudad', '
   'Talla', 'Nombre', 'Apellidos', 'DNI/NIE/Pasaporte', 'Fecha nacimiento', 'Telefono', 'Email',
   'Contacto emergencia', 'Telefono emergencia', 'Descargo aceptado', 'Version descargo', 'Firma (nombre)',
   'Fecha/hora aceptacion', 'Tratamiento datos aceptado', 'Estado', 'Token', 'Caduca (ms)', 'Ultimo cambio de estado',
-  'Peso (kg)', 'Altura sillin (cm)'];
-var COL_REF = 1, COL_EMAIL = 14, COL_DOC = 11, COL_ESTADO = 22, COL_TOKEN = 23, COL_CADUCA = 24, COL_PESO = 26, COL_SILLIN = 27;   // indices 0-based en la fila
+  'Peso (kg)', 'Altura sillin (cm)', 'Recordatorio 72h'];
+var COL_REF = 1, COL_EMAIL = 14, COL_DOC = 11, COL_ESTADO = 22, COL_TOKEN = 23, COL_CADUCA = 24, COL_PESO = 26, COL_SILLIN = 27, COL_REMIND = 28;   // indices 0-based en la fila
 
 var _sheet = null;
 function getSheet_() {
@@ -532,4 +538,112 @@ function resend_(body) {
   }
   cache.put(key, String(n + 1), 1800);
   return json_({ ok: true });
+}
+
+/* ================== RECORDATORIO 72 H ==================
+ * sendReminders() se ejecuta cada hora con un activador de tiempo (ver DEPLOY.md). Para cada reserva CONFIRMADA
+ * cuyo test empieza dentro de REMINDER_HOURS horas y que aun no tiene recordatorio, envia UN email al participante con
+ * los datos del test y el enlace para cancelar. Marca la fila en la columna "Recordatorio 72h" para no repetirlo.
+ * No cancela nada: si no hay respuesta, la reserva sigue en pie.
+ */
+
+// Inicio real del test (hora de Espana) en milisegundos
+function sessionStartMs_(date, hhmm) {
+  return Utilities.parseDate(txt_(date) + ' ' + hhmm, 'Europe/Madrid', 'yyyy-MM-dd HH:mm').getTime();
+}
+
+// "Fecha registro" de la fila en milisegundos (Sheets puede devolverla como texto o como fecha)
+function registeredMs_(v) {
+  try {
+    if (Object.prototype.toString.call(v) === '[object Date]') return v.getTime();
+    return Utilities.parseDate(String(v), 'Europe/Madrid', 'yyyy-MM-dd HH:mm:ss').getTime();
+  } catch (e) { return 0; }
+}
+
+function reminderBody_(nombre, ref, token, items) {
+  return 'Hola ' + nombre + ',\n\nTe recordamos tu reserva del SCOTT Experience 2027 (ref. ' + ref + '). Tu test es dentro de unos dias:\n\n' + linesOf_(items) +
+    '\n\nLlega 30 minutos antes del inicio. El casco es obligatorio y sin el no podras participar. Lleva tu DNI/NIE/pasaporte.' +
+    '\n\nSi no puedes venir, cancela tu reserva con este enlace para liberar la bicicleta a otra persona:\n' + manageLink_(ref, token) +
+    '\n\nSi no cancelas no hace falta que respondas: tu reserva sigue en pie y te esperamos.\n\nNos vemos en la ruta,\n' + SENDER_NAME;
+}
+
+// Nucleo. opts (solo para pruebas): { windowHours, onlyEmail, nowMs }. Devuelve el numero de recordatorios enviados.
+function runReminders_(opts) {
+  opts = opts || {};
+  var windowMs = (opts.windowHours || REMINDER_HOURS) * 3600000;
+  var nowMs = opts.nowMs || new Date().getTime();
+  var only = opts.onlyEmail ? String(opts.onlyEmail).toLowerCase() : '';
+  var lock = LockService.getScriptLock();
+  lock.waitLock(20000);   // evita pisarse con reservas y cancelaciones simultaneas
+  try {
+    var sh = getSheet_();
+    var rows = allRows_(sh);
+    var groups = {}, order = [];
+    for (var i = 0; i < rows.length; i++) {
+      var r = rows[i].r;
+      if (String(r[COL_ESTADO]) !== 'CONFIRMADA') continue;            // solo reservas confirmadas (no canceladas ni pendientes)
+      if (String(r[COL_REMIND]) !== '') continue;                       // ya tiene recordatorio (o "no aplica")
+      if (only && String(r[COL_EMAIL]).toLowerCase() !== only) continue;
+      var ses = SESSIONS[sid_(r[2], r[4], r[6], r[3])];
+      if (!ses) continue;
+      var ref = String(r[COL_REF]);
+      if (!groups[ref]) { groups[ref] = { rows: [], startMs: 0 }; order.push(ref); }
+      var st = sessionStartMs_(ses.date, ses.start);
+      groups[ref].rows.push(rows[i]);
+      if (!groups[ref].startMs || st < groups[ref].startMs) groups[ref].startMs = st;
+    }
+    var sent = 0;
+    for (var g = 0; g < order.length; g++) {
+      var grp = groups[order[g]];
+      var dueMs = grp.startMs - windowMs;                               // momento en que toca recordar
+      if (nowMs < dueMs) continue;                                      // aun no toca
+      var stamp = Utilities.formatDate(new Date(nowMs), 'Europe/Madrid', 'yyyy-MM-dd HH:mm');
+      var r0 = grp.rows[0].r;
+      // Reserva hecha dentro de la ventana (o test ya inminente): el email de confirmacion ya hace de recordatorio
+      if (registeredMs_(r0[0]) > dueMs || nowMs >= grp.startMs - REMINDER_MIN_LEAD_HOURS * 3600000) {
+        for (var a = 0; a < grp.rows.length; a++) sh.getRange(grp.rows[a].n, COL_REMIND + 1).setValue('NO APLICA');
+        continue;
+      }
+      if (sent >= REMINDER_MAX_PER_RUN) break;
+      if (MailApp.getRemainingDailyQuota() < 5) break;                  // se reintenta en la siguiente ejecucion
+      try {
+        MailApp.sendEmail({ to: String(r0[COL_EMAIL]), subject: 'Recordatorio · tu test SCOTT · ' + order[g], name: SENDER_NAME, replyTo: ORGANIZER_EMAIL,
+          body: reminderBody_(String(r0[9]), order[g], String(r0[COL_TOKEN]), itemsOf_(grp.rows)) });
+      } catch (mailErr) { continue; }                                   // si falla, se reintenta
+      for (var b = 0; b < grp.rows.length; b++) sh.getRange(grp.rows[b].n, COL_REMIND + 1).setValue('ENVIADO ' + stamp);
+      sent++;
+    }
+    SpreadsheetApp.flush();
+    return sent;
+  } finally {
+    try { lock.releaseLock(); } catch (x) {}
+  }
+}
+
+// Funcion que ejecuta el activador horario
+function sendReminders() {
+  var n = runReminders_({});
+  Logger.log('Recordatorios enviados: ' + n);
+}
+
+// Prueba manual (ejecutar desde el editor, solo en la copia desplegada): crea una reserva ficticia a nombre de ORGANIZER_EMAIL,
+// comprueba que se envia el recordatorio solo a esa direccion (sin avisar a coordinadores) y borra la fila de prueba.
+function selfTestReminder_() {
+  var sh = getSheet_();
+  var ref = 'SCX-TEST-' + Utilities.formatDate(new Date(), 'Europe/Madrid', 'HHmmss');
+  var bikeId = 'mtb-team-issue-carbon-black';
+  var row = ['2026-10-01 10:00:00', ref, '2026-12-14', '09:30-11:00', 'Córdoba', 'Córdoba Bike', 'mtb', BIKES[bikeId].label, 'M',
+    'Prueba', 'Recordatorio', 'TEST000', '1990-01-01', '600000000', ORGANIZER_EMAIL, 'Contacto', '611000000', 'SI', WAIVER_VERSION,
+    'prueba', '2026-10-01T10:00:00Z', 'SI', 'CONFIRMADA', 'tokenprueba0000000000000000000000', '', '2026-10-01 10:00:00', 74, '', ''];
+  sh.appendRow(row);
+  SpreadsheetApp.flush();
+  try {
+    var n = runReminders_({ windowHours: 24 * 90, onlyEmail: ORGANIZER_EMAIL });
+    var again = runReminders_({ windowHours: 24 * 90, onlyEmail: ORGANIZER_EMAIL });
+    Logger.log('Primera ejecucion: ' + n + ' enviado(s). Segunda ejecucion (no debe repetir): ' + again + '.');
+  } finally {
+    var all = allRows_(sh);
+    for (var i = all.length - 1; i >= 0; i--) if (String(all[i].r[COL_REF]) === ref) sh.deleteRow(all[i].n);
+    Logger.log('Fila de prueba ' + ref + ' eliminada.');
+  }
 }

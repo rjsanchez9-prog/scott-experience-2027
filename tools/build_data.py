@@ -178,10 +178,13 @@ def main():
     gs_stock = {b["id"]: dict(b["sizes"]) for b in bikes}
     gs_sessions = {s["id"]: {"type": s["type"], "date": s["date"], "city": s["city"], "store": s["store"],
                              "start": s["start"], "end": s["end"], "arrive": s["arrive"], "map": s["mapUrl"]} for s in sessions}
-    gs_bikes = {b["id"]: {"type": b["type"], "label": f'{b["family"]} {b["name"]} · {b["color"]}'} for b in bikes}
+    gs_bikes = {b["id"]: {"type": b["type"], "label": f'{b["family"]} {b["name"]} · {b["color"]}', "img": Path(b["img"]).name} for b in bikes}
+    # logo y color de fondo de cada tienda, para los correos (se sirven desde la web)
+    gs_logos = {d["store"]: {"img": d["logo"], "bg": d["logoBg"]} for d in day_list}
     block = ("// <STOCK-BEGIN> generado por tools/build_data.py\n"
              f"var STOCK = {json.dumps(gs_stock, ensure_ascii=False)};\n"
              f"var BIKES = {json.dumps(gs_bikes, ensure_ascii=False)};\n"
+             f"var STORE_LOGOS = {json.dumps(gs_logos, ensure_ascii=False)};\n"
              f"var SESSIONS = {json.dumps(gs_sessions, ensure_ascii=False)};\n"
              "// <STOCK-END>")
     gs_path = ROOT / "apps-script" / "Code.gs"

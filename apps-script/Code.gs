@@ -53,7 +53,8 @@ var BLOCKED_DATES = { '2026-12-13': true };   // Bike Philosophy (Malaga), domin
 
 // <STOCK-BEGIN> generado por tools/build_data.py
 var STOCK = {"mtb-team-issue-carbon-black": {"S": 1, "M": 6, "XL": 1}, "mtb-world-cup-evo-rush-white-carbon-black": {"S": 1, "M": 1}, "mtb-world-cup-cumulus-white-carbon-black": {"L": 2}, "gravel-20-watery-black": {"S": 1, "M": 3, "L": 1, "XL": 1}, "gravel-20-mojito-green": {"M": 1}, "gravel-10-lupine-grey": {"M": 1}};
-var BIKES = {"mtb-team-issue-carbon-black": {"type": "mtb", "label": "Spark RC Team Issue · Carbon Black"}, "mtb-world-cup-evo-rush-white-carbon-black": {"type": "mtb", "label": "Spark RC World Cup EVO · Rush White / Carbon Black"}, "mtb-world-cup-cumulus-white-carbon-black": {"type": "mtb", "label": "Spark RC World Cup · Cumulus White / Carbon Black"}, "gravel-20-watery-black": {"type": "gravel", "label": "Addict Gravel 20 · Watery Black"}, "gravel-20-mojito-green": {"type": "gravel", "label": "Addict Gravel 20 · Mojito Green"}, "gravel-10-lupine-grey": {"type": "gravel", "label": "Addict Gravel 10 · Lupine Grey"}};
+var BIKES = {"mtb-team-issue-carbon-black": {"type": "mtb", "label": "Spark RC Team Issue · Carbon Black", "img": "team-issue-carbon-black.jpg"}, "mtb-world-cup-evo-rush-white-carbon-black": {"type": "mtb", "label": "Spark RC World Cup EVO · Rush White / Carbon Black", "img": "world-cup-evo-rush-white.jpg"}, "mtb-world-cup-cumulus-white-carbon-black": {"type": "mtb", "label": "Spark RC World Cup · Cumulus White / Carbon Black", "img": "world-cup-cumulus-white.jpg"}, "gravel-20-watery-black": {"type": "gravel", "label": "Addict Gravel 20 · Watery Black", "img": "gravel-20-watery-black.jpg"}, "gravel-20-mojito-green": {"type": "gravel", "label": "Addict Gravel 20 · Mojito Green", "img": "gravel-20-mojito-green.jpg"}, "gravel-10-lupine-grey": {"type": "gravel", "label": "Addict Gravel 10 · Lupine Grey", "img": "gravel-10-lupine-grey.jpg"}};
+var STORE_LOGOS = {"Special Bikes": {"img": "assets/img/stores/special-bikes.png", "bg": "#ffffff"}, "Bike Philosophy": {"img": "assets/img/stores/bike-philosophy.png", "bg": "#000000"}, "Córdoba Bike": {"img": "assets/img/stores/cordoba-bike.png", "bg": "#000000"}, "Kanina Bikes Andújar": {"img": "assets/img/stores/kanina-bikes.png", "bg": "#ffffff"}};
 var SESSIONS = {"2026-12-11_algeciras_mtb_0930": {"type": "mtb", "date": "2026-12-11", "city": "Algeciras", "store": "Special Bikes", "start": "09:30", "end": "11:00", "arrive": "09:00", "map": "https://maps.app.goo.gl/Sm2qDsy3iYJcYGqA6"}, "2026-12-11_algeciras_gravel_1130": {"type": "gravel", "date": "2026-12-11", "city": "Algeciras", "store": "Special Bikes", "start": "11:30", "end": "13:00", "arrive": "11:00", "map": "https://maps.app.goo.gl/Sm2qDsy3iYJcYGqA6"}, "2026-12-12_malaga_mtb_1000": {"type": "mtb", "date": "2026-12-12", "city": "Málaga", "store": "Bike Philosophy", "start": "10:00", "end": "11:30", "arrive": "09:30", "map": "https://maps.app.goo.gl/jEWQp1VuHFSCoQHi9"}, "2026-12-12_malaga_gravel_1000": {"type": "gravel", "date": "2026-12-12", "city": "Málaga", "store": "Bike Philosophy", "start": "10:00", "end": "11:30", "arrive": "09:30", "map": "https://maps.app.goo.gl/jEWQp1VuHFSCoQHi9"}, "2026-12-12_malaga_mtb_1200": {"type": "mtb", "date": "2026-12-12", "city": "Málaga", "store": "Bike Philosophy", "start": "12:00", "end": "13:30", "arrive": "11:30", "map": "https://maps.app.goo.gl/jEWQp1VuHFSCoQHi9"}, "2026-12-12_malaga_gravel_1200": {"type": "gravel", "date": "2026-12-12", "city": "Málaga", "store": "Bike Philosophy", "start": "12:00", "end": "13:30", "arrive": "11:30", "map": "https://maps.app.goo.gl/jEWQp1VuHFSCoQHi9"}, "2026-12-12_malaga_mtb_1500": {"type": "mtb", "date": "2026-12-12", "city": "Málaga", "store": "Bike Philosophy", "start": "15:00", "end": "16:30", "arrive": "14:30", "map": "https://maps.app.goo.gl/jEWQp1VuHFSCoQHi9"}, "2026-12-12_malaga_gravel_1500": {"type": "gravel", "date": "2026-12-12", "city": "Málaga", "store": "Bike Philosophy", "start": "15:00", "end": "16:30", "arrive": "14:30", "map": "https://maps.app.goo.gl/jEWQp1VuHFSCoQHi9"}, "2026-12-13_malaga_mtb_1000": {"type": "mtb", "date": "2026-12-13", "city": "Málaga", "store": "Bike Philosophy", "start": "10:00", "end": "11:00", "arrive": "09:30", "map": "https://maps.app.goo.gl/jEWQp1VuHFSCoQHi9"}, "2026-12-13_malaga_gravel_1000": {"type": "gravel", "date": "2026-12-13", "city": "Málaga", "store": "Bike Philosophy", "start": "10:00", "end": "11:00", "arrive": "09:30", "map": "https://maps.app.goo.gl/jEWQp1VuHFSCoQHi9"}, "2026-12-13_malaga_mtb_1130": {"type": "mtb", "date": "2026-12-13", "city": "Málaga", "store": "Bike Philosophy", "start": "11:30", "end": "12:30", "arrive": "11:00", "map": "https://maps.app.goo.gl/jEWQp1VuHFSCoQHi9"}, "2026-12-13_malaga_gravel_1130": {"type": "gravel", "date": "2026-12-13", "city": "Málaga", "store": "Bike Philosophy", "start": "11:30", "end": "12:30", "arrive": "11:00", "map": "https://maps.app.goo.gl/jEWQp1VuHFSCoQHi9"}, "2026-12-13_malaga_mtb_1300": {"type": "mtb", "date": "2026-12-13", "city": "Málaga", "store": "Bike Philosophy", "start": "13:00", "end": "14:00", "arrive": "12:30", "map": "https://maps.app.goo.gl/jEWQp1VuHFSCoQHi9"}, "2026-12-13_malaga_gravel_1300": {"type": "gravel", "date": "2026-12-13", "city": "Málaga", "store": "Bike Philosophy", "start": "13:00", "end": "14:00", "arrive": "12:30", "map": "https://maps.app.goo.gl/jEWQp1VuHFSCoQHi9"}, "2026-12-14_cordoba_mtb_0930": {"type": "mtb", "date": "2026-12-14", "city": "Córdoba", "store": "Córdoba Bike", "start": "09:30", "end": "11:00", "arrive": "09:00", "map": "https://maps.app.goo.gl/A6LpH7HkqhRABzZA7"}, "2026-12-14_cordoba_gravel_1130": {"type": "gravel", "date": "2026-12-14", "city": "Córdoba", "store": "Córdoba Bike", "start": "11:30", "end": "13:00", "arrive": "11:00", "map": "https://maps.app.goo.gl/A6LpH7HkqhRABzZA7"}, "2026-12-15_andujar_mtb_0930": {"type": "mtb", "date": "2026-12-15", "city": "Andújar", "store": "Kanina Bikes Andújar", "start": "09:30", "end": "11:00", "arrive": "09:00", "map": "https://maps.app.goo.gl/7miXMEmDyBrKGWtb8"}, "2026-12-15_andujar_gravel_1130": {"type": "gravel", "date": "2026-12-15", "city": "Andújar", "store": "Kanina Bikes Andújar", "start": "11:30", "end": "13:00", "arrive": "11:00", "map": "https://maps.app.goo.gl/7miXMEmDyBrKGWtb8"}};
 // <STOCK-END>
 
@@ -215,7 +216,7 @@ function sendVerification_(email, nombre, ref, token, expMs, items) {
     '\n\nDescargo de responsabilidad aceptado (' + WAIVER_VERSION + '): ' + WAIVER_URL +
     '\n\nRecuerda: llega 30 minutos antes del inicio de tu test. El test dura entre 1 h y 1 h 30 min. El casco es obligatorio y sin el no podras participar. Lleva tu DNI/NIE/pasaporte.' +
     '\nPara cancelar mas adelante, usa este mismo enlace.\n\nNos vemos en la ruta,\n' + SENDER_NAME;
-  MailApp.sendEmail({ to: email, subject: 'Confirma tu reserva · SCOTT Experience 2027 · ' + ref, body: body, name: SENDER_NAME, replyTo: ORGANIZER_EMAIL });
+  MailApp.sendEmail({ to: email, subject: 'Confirma tu reserva · SCOTT Experience 2027 · ' + ref, body: body, htmlBody: verificationHtml_(nombre, ref, token, until, items), name: SENDER_NAME, replyTo: ORGANIZER_EMAIL });
 }
 
 // Email unico de confirmacion al participante (modo REQUIRE_EMAIL_CONFIRMATION = false): detalle + enlace para cancelar
@@ -225,7 +226,7 @@ function sendConfirmation_(email, nombre, ref, token, items) {
     '\n\nRecuerda: llega 30 minutos antes del inicio de tu test. El test dura entre 1 h y 1 h 30 min. El casco es obligatorio y sin el no podras participar. Lleva tu DNI/NIE/pasaporte.' +
     '\n\nSi no puedes venir, cancela tu reserva con este enlace para liberar la bicicleta a otra persona:\n' + manageLink_(ref, token) +
     '\n\nNos vemos en la ruta,\n' + SENDER_NAME;
-  MailApp.sendEmail({ to: email, subject: 'Reserva confirmada · SCOTT Experience 2027 · ' + ref, body: body, name: SENDER_NAME, replyTo: ORGANIZER_EMAIL });
+  MailApp.sendEmail({ to: email, subject: 'Reserva confirmada · SCOTT Experience 2027 · ' + ref, body: body, htmlBody: confirmationHtml_(nombre, ref, token, items), name: SENDER_NAME, replyTo: ORGANIZER_EMAIL });
 }
 
 // Direcciones que reciben copia: el organizador y el coordinador de cada tienda implicada (sin repetir)
@@ -239,13 +240,13 @@ function teamRecipients_(items) {
 
 // Avisos al organizador y a los coordinadores de tienda. Solo si queda cuota diaria de sobra: la confirmacion al participante tiene prioridad.
 // El coordinador recibe datos de contacto y de ajuste de la bici; no el DNI ni la fecha de nacimiento.
-function notifyTeam_(subject, orgText, coordText, items) {
+function notifyTeam_(subject, orgText, coordText, items, orgHtml, coordHtml) {
   var to = teamRecipients_(items);
   for (var i = 0; i < to.length; i++) {
     try {
       if (MailApp.getRemainingDailyQuota() < 5) return;
       var isOrg = String(to[i]).toLowerCase() === String(ORGANIZER_EMAIL).toLowerCase();
-      MailApp.sendEmail({ to: to[i], subject: subject, body: isOrg ? orgText : coordText, name: SENDER_NAME, replyTo: ORGANIZER_EMAIL });
+      MailApp.sendEmail({ to: to[i], subject: subject, body: isOrg ? orgText : coordText, htmlBody: isOrg ? orgHtml : coordHtml, name: SENDER_NAME, replyTo: ORGANIZER_EMAIL });
     } catch (x) { /* el aviso es secundario */ }
   }
 }
@@ -269,11 +270,13 @@ function teamNotice_(kind, ref, row, items) {
   var who = row[9] + ' ' + row[10];
   var head = kind === 'CANCELADA' ? 'Reserva CANCELADA (ref. ' + ref + '). Las bicis quedan libres.' : 'Nueva reserva CONFIRMADA (ref. ' + ref + ')';
   var subject = (kind === 'CANCELADA' ? 'Reserva CANCELADA ' : 'Nueva reserva ') + ref + ' · ' + who + ' · ' + items[0].store;
-  if (isTestBooking_(row)) {
+  var isTest = isTestBooking_(row);
+  if (isTest) {
     subject = '[PRUEBA - NO ES UNA RESERVA REAL] ' + subject;
     head = '*** PRUEBA - NO ES UNA RESERVA REAL. IGNORAR: no hay que preparar ninguna bici. Se borrara. ***\n\n' + head;
   }
-  notifyTeam_(subject, head + '\n\n' + linesOf_(items) + '\n\n' + personText_(row), head + '\n\n' + linesOf_(items) + '\n\n' + coordPersonText_(row), items);
+  notifyTeam_(subject, head + '\n\n' + linesOf_(items) + '\n\n' + personText_(row), head + '\n\n' + linesOf_(items) + '\n\n' + coordPersonText_(row), items,
+    teamHtml_(kind, ref, row, items, true, isTest), teamHtml_(kind, ref, row, items, false, isTest));
 }
 
 function personText_(r) {
@@ -649,7 +652,8 @@ function runReminders_(opts) {
       if (MailApp.getRemainingDailyQuota() < 5) break;                  // se reintenta en la siguiente ejecucion
       try {
         MailApp.sendEmail({ to: String(r0[COL_EMAIL]), subject: 'Recordatorio · tu test SCOTT · ' + order[g], name: SENDER_NAME, replyTo: ORGANIZER_EMAIL,
-          body: reminderBody_(String(r0[9]), order[g], String(r0[COL_TOKEN]), itemsOf_(grp.rows)) });
+          body: reminderBody_(String(r0[9]), order[g], String(r0[COL_TOKEN]), itemsOf_(grp.rows)),
+          htmlBody: reminderHtml_(String(r0[9]), order[g], String(r0[COL_TOKEN]), itemsOf_(grp.rows)) });
       } catch (mailErr) { continue; }                                   // si falla, se reintenta
       for (var b = 0; b < grp.rows.length; b++) sh.getRange(grp.rows[b].n, COL_REMIND + 1).setValue('ENVIADO ' + stamp);
       sent++;
@@ -687,4 +691,211 @@ function pruebaRecordatorio() {
     for (var i = all.length - 1; i >= 0; i--) if (String(all[i].r[COL_REF]) === ref) sh.deleteRow(all[i].n);
     Logger.log('Fila de prueba ' + ref + ' eliminada.');
   }
+}
+
+// =====================================================================================================================
+// CORREOS CON LA IMAGEN DE LA LANDING (HTML)
+// Mismo estilo que la web: cabecera oscura con el logo SCOTT, tipografia Helvetica/Arial en negrita, botones oscuros y
+// tarjetas con la bici, la talla, el horario y la tienda. Todos los correos llevan ademas la version en texto plano
+// (body) por si el cliente de correo no muestra HTML. Las imagenes se sirven desde la propia web (GitHub Pages).
+// Codigo ES5 (motor antiguo de Apps Script): sin flechas, plantillas de texto, let/const.
+// =====================================================================================================================
+var MAIL_FONT = "'Helvetica Neue',Helvetica,Arial,sans-serif";
+var MAIL_INK = '#020817', MAIL_INK2 = '#333a48', MAIL_MUTED = '#566074', MAIL_LINE = '#e4e6ea', MAIL_SOFT = '#f3f4f5';
+var DOW_ES = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+var MON_ES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+
+function esc_(s) {
+  return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+// Direccion publica de un archivo de la web (por ejemplo assets/img/email/scott-logo-white.png)
+function assetUrl_(path) { return String(MANAGE_URL).replace(/reserva\.html.*$/, '') + path; }
+function dateEs_(iso) {
+  var p = String(iso).split('-');
+  var d = new Date(Date.UTC(+p[0], +p[1] - 1, +p[2]));
+  return DOW_ES[d.getUTCDay()] + ' ' + (+p[2]) + ' de ' + MON_ES[+p[1] - 1];
+}
+function minutesBetween_(a, b) {
+  var pa = String(a).split(':'), pb = String(b).split(':');
+  return (+pb[0] * 60 + +pb[1]) - (+pa[0] * 60 + +pa[1]);
+}
+function arriveText_(it) {
+  var m = it.arrive ? minutesBetween_(it.arrive, it.start) : 0;
+  return 'A las ' + esc_(it.arrive || it.start) + (m > 0 ? ' (' + m + ' minutos antes del inicio)' : '');
+}
+
+function mailBtn_(href, label) {
+  return '<table role="presentation" cellpadding="0" cellspacing="0" style="margin:14px 0 0 0;"><tr><td bgcolor="' + MAIL_INK + '" style="background:' + MAIL_INK + ';border-radius:3px;">' +
+    '<a href="' + esc_(href) + '" style="display:inline-block;padding:14px 26px;font:700 14px ' + MAIL_FONT + ';letter-spacing:.05em;text-transform:uppercase;color:#ffffff;text-decoration:none;">' + esc_(label) + '</a></td></tr></table>';
+}
+function mailRow_(label, valueHtml) {
+  return '<tr><td valign="top" width="84" style="padding:8px 8px 4px 0;font:700 10px ' + MAIL_FONT + ';letter-spacing:.12em;text-transform:uppercase;color:' + MAIL_MUTED + ';">' + esc_(label) + '</td>' +
+    '<td valign="top" style="padding:4px 0;font:400 14px/1.45 ' + MAIL_FONT + ';color:' + MAIL_INK + ';">' + valueHtml + '</td></tr>';
+}
+function mailChip_(text, bg, fg) {
+  return '<span style="display:inline-block;background:' + bg + ';color:' + fg + ';font:700 11px ' + MAIL_FONT + ';letter-spacing:.12em;text-transform:uppercase;padding:6px 11px;border-radius:3px;">' + esc_(text) + '</span>';
+}
+
+// Tarjeta de un test: bici + talla, cuando, a que hora presentarse y donde (con el logo de la tienda y enlace a Maps)
+function mailItemCard_(it) {
+  var bikeId = findBikeId_(it.bike);
+  var b = BIKES[bikeId] || {};
+  var parts = String(it.bike).split(' · ');
+  var bikeName = parts[0], bikeColor = parts.length > 1 ? parts.slice(1).join(' · ') : '';
+  var img = b.img ? assetUrl_('assets/img/email/bikes/' + b.img) : '';
+  var logo = STORE_LOGOS[it.store];
+  var typeTxt = it.type === 'mtb' ? 'MTB' : 'Gravel';
+  var h = '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid ' + MAIL_LINE + ';border-radius:10px;border-collapse:separate;margin:0 0 14px 0;"><tr>';
+  if (img) {
+    h += '<td width="132" valign="middle" style="width:132px;background:#ffffff;border-radius:9px 0 0 0;padding:8px;"><img src="' + esc_(img) + '" width="116" height="116" alt="' + esc_(bikeName) + '" style="display:block;border:0;width:116px;height:116px;"></td>';
+  }
+  h += '<td valign="middle" style="padding:16px 18px;">' +
+    '<span style="display:inline-block;background:' + MAIL_INK + ';color:#ffffff;font:700 10px ' + MAIL_FONT + ';letter-spacing:.14em;text-transform:uppercase;padding:4px 8px;border-radius:2px;">' + typeTxt + '</span>' +
+    '<div style="font:800 18px/1.2 ' + MAIL_FONT + ';color:' + MAIL_INK + ';margin:9px 0 0 0;">' + esc_(bikeName) + '</div>' +
+    (bikeColor ? '<div style="font:400 13px/1.4 ' + MAIL_FONT + ';color:' + MAIL_MUTED + ';margin:2px 0 0 0;">' + esc_(bikeColor) + '</div>' : '') +
+    '<div style="font:700 13px ' + MAIL_FONT + ';color:' + MAIL_INK + ';margin:8px 0 0 0;">Talla ' + esc_(it.size) + '</div></td></tr>';
+  // Donde: logo de la tienda junto al nombre y el enlace a Maps
+  var where = '<table role="presentation" cellpadding="0" cellspacing="0"><tr>';
+  if (logo) {
+    where += '<td valign="top" style="padding-right:10px;"><table role="presentation" cellpadding="0" cellspacing="0"><tr><td bgcolor="' + esc_(logo.bg) + '" style="background:' + esc_(logo.bg) + ';border:1px solid ' + MAIL_LINE + ';border-radius:6px;padding:4px;">' +
+      '<img src="' + esc_(assetUrl_(logo.img)) + '" width="40" alt="' + esc_(it.store) + '" style="display:block;border:0;width:40px;height:auto;"></td></tr></table></td>';
+  }
+  where += '<td valign="top" style="font:400 14px/1.45 ' + MAIL_FONT + ';color:' + MAIL_INK + ';"><strong>' + esc_(it.store) + '</strong><br>' + esc_(it.city) +
+    (it.map ? ' · <a href="' + esc_(it.map) + '" style="color:' + MAIL_INK + ';font-weight:700;">Cómo llegar &rarr;</a>' : '') + '</td></tr></table>';
+  h += '<tr><td colspan="2" style="border-top:1px solid ' + MAIL_LINE + ';padding:10px 16px 12px 16px;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0">' +
+    mailRow_('Cuándo', '<strong>' + esc_(dateEs_(it.date)) + '</strong><br>' + esc_(it.start) + '–' + esc_(it.end)) +
+    mailRow_('Llegada', arriveText_(it)) +
+    mailRow_('Dónde', where) +
+    '</table></td></tr></table>';
+  return h;
+}
+function mailItemCards_(items) {
+  var h = '';
+  for (var i = 0; i < items.length; i++) h += mailItemCard_(items[i]);
+  return h;
+}
+
+// Marco comun: cabecera con logo, (aviso opcional), chip + titular, cuerpo y pie
+//   o: {pre, eyebrow, chipText, chipBg, chipFg, titleHtml, titleText, intro, banner, body, foot}
+function mailShell_(o) {
+  var h = '<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">' +
+    '<meta name="color-scheme" content="light"><meta name="supported-color-schemes" content="light"><title>' + esc_(o.titleText || SENDER_NAME) + '</title></head>' +
+    '<body style="margin:0;padding:0;background:' + MAIL_SOFT + ';">' +
+    '<div style="display:none;max-height:0;overflow:hidden;opacity:0;font-size:1px;line-height:1px;color:' + MAIL_SOFT + ';">' + esc_(o.pre || '') + '</div>' +
+    '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:' + MAIL_SOFT + ';"><tr><td align="center" style="padding:24px 12px;">' +
+    '<table role="presentation" width="600" cellpadding="0" cellspacing="0" style="width:100%;max-width:600px;background:#ffffff;border-radius:12px;border-collapse:separate;">' +
+    '<tr><td style="background:' + MAIL_INK + ';border-radius:12px 12px 0 0;padding:22px 22px;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>' +
+    '<td valign="middle"><img src="' + esc_(assetUrl_('assets/img/email/scott-logo-white.png')) + '" width="120" height="25" alt="SCOTT" style="display:block;border:0;width:120px;height:25px;"></td>' +
+    '<td align="right" valign="middle" style="font:700 11px ' + MAIL_FONT + ';letter-spacing:.16em;text-transform:uppercase;color:#aab1c0;">' + esc_(o.eyebrow || SENDER_NAME) + '</td></tr></table></td></tr>';
+  if (o.banner) h += '<tr><td style="background:#ffe14d;padding:13px 22px;font:700 13px/1.45 ' + MAIL_FONT + ';color:#231c00;">' + o.banner + '</td></tr>';
+  h += '<tr><td style="padding:28px 22px 4px 22px;">' + mailChip_(o.chipText, o.chipBg, o.chipFg) +
+    '<div style="font:800 28px/1.1 ' + MAIL_FONT + ';letter-spacing:-.01em;text-transform:uppercase;color:' + MAIL_INK + ';margin:14px 0 0 0;">' + o.titleHtml + '</div>' +
+    (o.intro ? '<div style="font:400 15px/1.55 ' + MAIL_FONT + ';color:' + MAIL_INK2 + ';margin:12px 0 0 0;">' + o.intro + '</div>' : '') + '</td></tr>' +
+    '<tr><td style="padding:20px 22px 8px 22px;">' + o.body + '</td></tr>' +
+    '<tr><td style="background:#ffffff;border-top:1px solid ' + MAIL_LINE + ';border-radius:0 0 12px 12px;padding:22px 22px 26px 22px;font:400 12px/1.6 ' + MAIL_FONT + ';color:' + MAIL_MUTED + ';">' + o.foot + '</td></tr>' +
+    '</table></td></tr></table></body></html>';
+  return h;
+}
+
+// Recuadro "Antes de venir" (casco, documento, duracion, descargo)
+function mailInfoBox_(withWaiver) {
+  var li = function (t) { return '<tr><td valign="top" width="18" style="padding:3px 0;font:700 14px ' + MAIL_FONT + ';color:' + MAIL_INK + ';">&bull;</td><td style="padding:3px 0;font:400 14px/1.5 ' + MAIL_FONT + ';color:' + MAIL_INK2 + ';">' + t + '</td></tr>'; };
+  return '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:' + MAIL_SOFT + ';border-radius:10px;margin:6px 0 0 0;"><tr><td style="padding:18px 20px;">' +
+    '<div style="font:800 13px ' + MAIL_FONT + ';letter-spacing:.12em;text-transform:uppercase;color:' + MAIL_INK + ';margin:0 0 6px 0;">Antes de venir</div>' +
+    '<table role="presentation" width="100%" cellpadding="0" cellspacing="0">' +
+    li('<strong>Casco obligatorio.</strong> Sin casco no se puede participar.') +
+    li('<strong>Lleva tu documento</strong> de identidad (DNI/NIE/pasaporte).') +
+    li('<strong>Duración:</strong> entre 1 h y 1 h 30 min de ruta al aire libre.') +
+    (withWaiver ? li('Descargo de responsabilidad aceptado (' + esc_(WAIVER_VERSION) + '): <a href="' + esc_(WAIVER_URL) + '" style="color:' + MAIL_INK + ';font-weight:700;">ver documento</a>.') : '') +
+    '</table></td></tr></table>';
+}
+function mailSign_(extra) {
+  return (extra ? extra + '<br><br>' : '') + '<strong style="color:' + MAIL_INK + ';">' + esc_(SENDER_NAME) + '</strong><br>Responde a este correo si tienes cualquier duda.';
+}
+function firstName_(nombre) { return String(nombre).split(' ')[0]; }
+
+// --- Participante: reserva confirmada
+function confirmationHtml_(nombre, ref, token, items) {
+  return mailShell_({
+    pre: 'Tu reserva está confirmada · ' + dateEs_(items[0].date) + ' · ' + items[0].store,
+    eyebrow: SENDER_NAME, chipText: 'Reserva confirmada', chipBg: '#e6f4ec', chipFg: '#0b7a3b',
+    titleHtml: '¡Te esperamos, ' + esc_(firstName_(nombre)) + '!', titleText: 'Reserva confirmada · ' + SENDER_NAME,
+    intro: 'Tu reserva para el <strong>' + esc_(SENDER_NAME) + '</strong> está confirmada. Referencia: <strong>' + esc_(ref) + '</strong>.',
+    body: mailItemCards_(items) + mailInfoBox_(true) +
+      '<div style="font:400 14px/1.55 ' + MAIL_FONT + ';color:' + MAIL_INK2 + ';margin:22px 0 0 0;">Si no puedes venir, cancela tu reserva para liberar la bicicleta a otra persona.</div>' +
+      mailBtn_(manageLink_(ref, token), 'Cancelar mi reserva'),
+    foot: mailSign_('Nos vemos en la ruta.')
+  });
+}
+// --- Participante: falta confirmar (solo si REQUIRE_EMAIL_CONFIRMATION = true)
+function verificationHtml_(nombre, ref, token, until, items) {
+  return mailShell_({
+    pre: 'Un último paso: confirma tu reserva antes de las ' + until,
+    eyebrow: SENDER_NAME, chipText: 'Falta un paso', chipBg: '#fff4cc', chipFg: '#7a5b00',
+    titleHtml: 'Confirma tu reserva', titleText: 'Confirma tu reserva · ' + SENDER_NAME,
+    intro: 'Hola ' + esc_(firstName_(nombre)) + ', un último paso: confirma tu reserva del <strong>' + esc_(SENDER_NAME) + '</strong> (ref. <strong>' + esc_(ref) + '</strong>). Tienes hasta las <strong>' + esc_(until) + '</strong> (hora de España).',
+    body: mailItemCards_(items) + mailBtn_(manageLink_(ref, token), 'Confirmar mi reserva') +
+      '<div style="font:400 13px/1.55 ' + MAIL_FONT + ';color:' + MAIL_MUTED + ';margin:14px 0 20px 0;">Si no confirmas a tiempo, la bicicleta se libera automáticamente para otras personas. Si no has hecho tú esta reserva, ignora este mensaje: no se confirmará.</div>' + mailInfoBox_(true),
+    foot: mailSign_('Para cancelar más adelante, usa este mismo enlace.')
+  });
+}
+// --- Participante: recordatorio
+function reminderHtml_(nombre, ref, token, items) {
+  return mailShell_({
+    pre: 'Tu test es dentro de unos días · ' + dateEs_(items[0].date) + ' · ' + items[0].store,
+    eyebrow: SENDER_NAME, chipText: 'Recordatorio', chipBg: MAIL_INK, chipFg: '#ffffff',
+    titleHtml: 'Tu test es dentro de unos días', titleText: 'Recordatorio · ' + SENDER_NAME,
+    intro: 'Hola ' + esc_(firstName_(nombre)) + ', te recordamos tu reserva del <strong>' + esc_(SENDER_NAME) + '</strong> (ref. <strong>' + esc_(ref) + '</strong>).',
+    body: mailItemCards_(items) + mailInfoBox_(false) +
+      '<div style="font:400 14px/1.55 ' + MAIL_FONT + ';color:' + MAIL_INK2 + ';margin:22px 0 0 0;">Si no puedes venir, cancela tu reserva para liberar la bicicleta a otra persona. Si no cancelas no hace falta que respondas: tu reserva sigue en pie y te esperamos.</div>' +
+      mailBtn_(manageLink_(ref, token), 'Cancelar mi reserva'),
+    foot: mailSign_('Nos vemos en la ruta.')
+  });
+}
+// --- Equipo (organizador y responsables de tienda): reserva nueva o cancelada
+//     isOrg = true: incluye el contacto de emergencia. Los responsables no ven DNI, nacimiento ni contacto de emergencia.
+function teamHtml_(kind, ref, row, items, isOrg, isTest) {
+  var cancel = kind === 'CANCELADA';
+  var who = String(row[9]) + ' ' + String(row[10]);
+  var sillin = (row[COL_SILLIN] !== '' && row[COL_SILLIN] != null) ? esc_(row[COL_SILLIN]) + ' cm' : '';
+  var tel = esc_(String(row[13]).replace(/^'/, '')), mail = esc_(String(row[COL_EMAIL]).replace(/^'/, ''));
+  var telHref = esc_(String(row[13]).replace(/[^0-9+]/g, ''));
+  var person = '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:' + MAIL_SOFT + ';border-radius:10px;margin:6px 0 0 0;"><tr><td style="padding:16px 20px;">' +
+    '<div style="font:800 13px ' + MAIL_FONT + ';letter-spacing:.12em;text-transform:uppercase;color:' + MAIL_INK + ';margin:0 0 6px 0;">Participante</div><table role="presentation" width="100%" cellpadding="0" cellspacing="0">' +
+    mailRow_('Nombre', '<strong>' + esc_(who) + '</strong>') +
+    mailRow_('Teléfono', '<a href="tel:' + telHref + '" style="color:' + MAIL_INK + ';">' + tel + '</a>') +
+    mailRow_('Email', '<a href="mailto:' + mail + '" style="color:' + MAIL_INK + ';">' + mail + '</a>') +
+    mailRow_('Peso', esc_(row[COL_PESO]) + ' kg') + (sillin ? mailRow_('Altura sillín', sillin) : '') +
+    (isOrg ? mailRow_('Emergencia', esc_(row[15]) + ' · ' + esc_(row[16])) : '') + '</table></td></tr></table>';
+  var note = cancel ? 'Esta reserva se ha cancelado: las bicis quedan libres y ya no hace falta prepararlas.' :
+    (isOrg ? 'Reserva confirmada y guardada en la hoja de reservas.' : 'Prepara la bicicleta y la talla indicadas para esta persona.');
+  return mailShell_({
+    pre: (cancel ? 'Reserva cancelada · ' : 'Nueva reserva · ') + who + ' · ' + items[0].store,
+    eyebrow: 'Aviso interno', chipText: cancel ? 'Reserva cancelada' : 'Nueva reserva', chipBg: cancel ? '#fdecec' : '#e6f4ec', chipFg: cancel ? '#c0262d' : '#0b7a3b',
+    titleHtml: esc_(who), titleText: (cancel ? 'Reserva cancelada · ' : 'Nueva reserva · ') + who,
+    intro: esc_(note) + ' Referencia: <strong>' + esc_(ref) + '</strong>.',
+    banner: isTest ? 'PRUEBA · NO ES UNA RESERVA REAL.<br><span style="font-weight:400;">Ignorar: no hay que preparar ninguna bici. Se borrará.</span>' : '',
+    body: mailItemCards_(items) + person,
+    foot: 'Aviso automático de <strong style="color:' + MAIL_INK + ';">' + esc_(SENDER_NAME) + '</strong>. ' + (isOrg ? '' : 'Por privacidad no se incluyen el DNI, la fecha de nacimiento ni el contacto de emergencia.')
+  });
+}
+
+// Vista previa: envia UNA muestra de cada correo SOLO al organizador (ORGANIZER_EMAIL). No crea reservas ni avisa a nadie mas.
+// Ejecutar desde el editor de Apps Script para ver como llegan los correos a la bandeja.
+function pruebaCorreos() {
+  var s = SESSIONS['2026-12-12_malaga_mtb_1000'] || SESSIONS[Object.keys(SESSIONS)[0]];
+  var bikeId = Object.keys(BIKES)[0];
+  var it = { type: s.type, date: s.date, start: s.start, end: s.end, arrive: s.arrive, store: s.store, city: s.city, map: s.map, bike: BIKES[bikeId].label, size: 'M' };
+  var it2 = { type: 'gravel', date: s.date, start: '12:00', end: '13:30', arrive: '11:30', store: s.store, city: s.city, map: s.map, bike: 'Addict Gravel 20 · Watery Black', size: 'L' };
+  var items = [it, it2];
+  var row = ['', 'SCX-VISTA', s.date, '', s.city, s.store, s.type, it.bike, 'M', 'Nombre', 'Apellidos', 'X', '', '600 000 000', ORGANIZER_EMAIL, 'Contacto', '611 000 000', '', '', '', '', '', '', '', '', '', 74, 72, ''];
+  var tag = '[VISTA PREVIA] ';
+  function send(subject, html) { MailApp.sendEmail({ to: ORGANIZER_EMAIL, subject: tag + subject, body: 'Vista previa de correo (ver en HTML).', htmlBody: html, name: SENDER_NAME, replyTo: ORGANIZER_EMAIL }); }
+  send('Reserva confirmada (participante)', confirmationHtml_('Nombre', 'SCX-VISTA', 'tokenvista', items));
+  send('Recordatorio (participante)', reminderHtml_('Nombre', 'SCX-VISTA', 'tokenvista', items));
+  send('Confirma tu reserva (participante, modo antiguo)', verificationHtml_('Nombre', 'SCX-VISTA', 'tokenvista', '12:30', [it]));
+  send('Nueva reserva (organizador)', teamHtml_('NUEVA', 'SCX-VISTA', row, items, true, true));
+  send('Nueva reserva (responsable de tienda)', teamHtml_('NUEVA', 'SCX-VISTA', row, items, false, true));
+  send('Reserva cancelada (equipo)', teamHtml_('CANCELADA', 'SCX-VISTA', row, [it], false, true));
+  Logger.log('Enviadas 6 vistas previas a ' + ORGANIZER_EMAIL);
 }
